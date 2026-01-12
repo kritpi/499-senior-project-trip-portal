@@ -24,17 +24,17 @@ apiClient.interceptors.response.use(
       // Handle specific status codes globally
       switch (status) {
         case 401:
-          console.error('Unauthorized - redirecting to login');
+          console.log('Unauthorized - redirecting to login');
           // window.location.href = '/login';
           break;
         case 403:
-          console.error('Forbidden');
+          console.log('Forbidden');
           break;
         case 500:
-          console.error('Server error');
+          console.log('Server error');
           break;
         default:
-          console.error(`API Error ${status}:`, data);
+          console.log(`API Error ${status}:`, data);
       }
     } else if (error.request) {
       console.error('Network error - no response');

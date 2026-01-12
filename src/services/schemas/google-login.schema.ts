@@ -1,14 +1,14 @@
-import z from "zod";
+import { z } from "zod";
 
-export const GoogleAuthReq = z.object({
+export const GoogleAuthReqSchema = z.object({
   code: z.string(),
   code_verifier: z.string(),
   redirect_uri: z.string()
 });
 
-export const GoogleAuthResp = z.object({
+export const GoogleAuthRespSchema = z.object({
     access_token: z.string()
 })
 
-export type GoogleAuthRequest = z.infer<typeof GoogleAuthReq>;
-export type GoogleAuthResp = z.infer<typeof GoogleAuthResp>;
+export type GoogleAuthRequest = z.infer<typeof GoogleAuthReqSchema>;
+export type GoogleAuthResp = z.infer<typeof GoogleAuthRespSchema>;

@@ -51,7 +51,7 @@ export default function AuthenticationPage() {
                     <div className='w-300px'>
 
                         <p className='text-center text-sm text-muted-foreground'>
-                            {localStorage.getItem("access_token")}
+                            {localStorage.getItem("access_token") || ""}
                         </p>
                     </div>
                 </div>
