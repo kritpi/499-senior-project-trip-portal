@@ -1,59 +1,19 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetTripById } from "@/hooks/trip/use-get-trip-by-id";
+import { useUpsertTrip } from "@/hooks/trip/use-upsert-trip";
 import ProgressLoading from "@/components/ui/loading-animation";
 import ErrorCard from "@/components/common/ErrorCard";
-import { useUpsertTrip } from "@/hooks/trip/use-upsert-trip";
-import { useTripInvitation } from "@/hooks/trip/use-trip-invitation";
-import { useForm, Controller } from "react-hook-form";
-import z from "zod";
-import {
-  UpsertTripReqSchema,
-  UpsertTripRequest,
-} from "@/services/schemas/trip";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-
-import { Loader2, AlertCircle, UserPlus, X } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldError,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { DateRange } from "react-day-picker";
-import { Textarea } from "@/components/ui/textarea";
+import TripForm from "@/components/trip/TripForm";
+import type { TripFormRef } from "@/components/trip/TripForm";
+import TripInvitation from "@/components/trip/TripInvitation";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ArrowRight } from "lucide-react";
+import type { UpsertTripRequest } from "@/services/schemas/trip";
 
 export default function TripPage() {
-  const POPULAR_CITIES = [
-    "Bangkok, Thailand",
-    "Tokyo, Japan",
-    "Singapore",
-    "Seoul, South Korea",
-    "Hong Kong",
-    "Taipei, Taiwan",
-    "Paris, France",
-    "London, United Kingdom",
-    "New York, USA",
-  ];
   const params = useParams();
   const router = useRouter();
 
@@ -66,13 +26,10 @@ export default function TripPage() {
 
   const [accessToken, setAccessToken] = useState("");
   const [isNewTrip, setIsNewTrip] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>();
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"EDITOR" | "VIEWER">("VIEWER");
-  const [membersToInvite, setMembersToInvite] = useState<
-    Array<{ email: string; role: "EDITOR" | "VIEWER" }>
-  >([]);
+  const [formData, setFormData] = useState<UpsertTripRequest | null>(null);
+
+  const upsertTrip = useUpsertTrip();
+  const tripFormRef = useRef<TripFormRef>(null);
 
   // Load access token ONCE
   useEffect(() => {
@@ -83,14 +40,6 @@ export default function TripPage() {
   const hasAccessToken = accessToken !== "";
   const isEditTrip = hasAccessToken && typeof tripId === "number" && tripId > 0;
   const isCreateTrip = hasAccessToken && tripId === "create";
-  type FormValues = z.infer<typeof UpsertTripReqSchema>;
-  const emptyTripValues: UpsertTripRequest = {
-    trip_name: "",
-    description: "",
-    start_date: "",
-    end_date: "",
-    main_location: "",
-  };
 
   // Decide new vs edit
   useEffect(() => {
@@ -101,86 +50,6 @@ export default function TripPage() {
     }
   }, [isCreateTrip]);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(UpsertTripReqSchema),
-    defaultValues: emptyTripValues,
-  });
-
-  const upsertTrip = useUpsertTrip();
-  const tripInvitation = useTripInvitation();
-
-  const onSubmit = (data: FormValues) => {
-    const payload: UpsertTripRequest = {
-      ...(isEditTrip && tripId ? { trip_id: tripId } : {}),
-      trip_name: data.trip_name,
-      description: data.description,
-      start_date: data.start_date,
-      end_date: data.end_date,
-      main_location: data.main_location,
-    };
-    console.log("payload: ", payload);
-    console.log("access token: ", accessToken);
-
-    upsertTrip.mutate(
-      { payload, access_token: accessToken },
-      {
-        onSuccess: () => {
-          router.push("/trips");
-        },
-      }
-    );
-  };
-
-  const handleAddMember = () => {
-    if (!inviteEmail || !inviteRole) {
-      return;
-    }
-
-    // Check if email already exists
-    if (membersToInvite.some((m) => m.email === inviteEmail)) {
-      // You could show an error message here
-      return;
-    }
-
-    setMembersToInvite([
-      ...membersToInvite,
-      { email: inviteEmail, role: inviteRole },
-    ]);
-    setInviteEmail("");
-    setInviteRole("VIEWER");
-  };
-
-  const handleRemoveMember = (emailToRemove: string) => {
-    setMembersToInvite(
-      membersToInvite.filter((m) => m.email !== emailToRemove)
-    );
-  };
-
-  const handleSendInvitations = () => {
-    if (membersToInvite.length === 0 || typeof tripId !== "number") {
-      return;
-    }
-
-    tripInvitation.mutate(
-      {
-        payload: {
-          trip_id: tripId,
-          member: membersToInvite,
-        },
-        access_token: accessToken,
-      },
-      {
-        onSuccess: () => {
-          // Reset form
-          setMembersToInvite([]);
-          setInviteEmail("");
-          setInviteRole("VIEWER");
-          setShowInviteForm(false);
-        },
-      }
-    );
-  };
-
   // Fetch only when editing (isEditTrip already checks hasAccessToken)
   const {
     data: trip,
@@ -190,27 +59,69 @@ export default function TripPage() {
     enabled: isEditTrip,
   });
 
-  // Populate form when trip data is loaded (must be before conditional returns)
   useEffect(() => {
-    if (trip) {
-      form.reset({
+    if (trip && isEditTrip && trip.image_url) {
+      const initialFormData: UpsertTripRequest = {
         trip_id: trip.trip_id,
         trip_name: trip.trip_name,
-        description: trip.description,
         start_date: trip.start_date,
         end_date: trip.end_date,
         main_location: trip.main_location,
-      });
-
-      // Also populate the dateRange state for the calendar
-      if (trip.start_date && trip.end_date) {
-        setDateRange({
-          from: new Date(trip.start_date),
-          to: new Date(trip.end_date),
-        });
-      }
+        description: trip.description,
+        image_url: trip.image_url,
+      };
+      setFormData(initialFormData);
     }
-  }, [trip, form]);
+  }, [isEditTrip, trip]);
+
+  // Handle form submission
+  const handleFormSubmit = (data: UpsertTripRequest) => {
+    setFormData(data);
+  };
+
+  // Handle navigation to activities - validate trip is saved first
+  const handleNavigateToActivities = async () => {
+    // Trigger form validation
+    const isValid = await tripFormRef.current?.validateForm();
+
+    if (!isValid) {
+      console.error("Form validation failed");
+      return;
+    }
+
+    // Check if formData exists and has all required fields
+    if (
+      !formData ||
+      !formData.trip_name ||
+      !formData.start_date ||
+      !formData.end_date ||
+      !formData.main_location ||
+      !formData.image_url
+    ) {
+      return;
+    }
+
+    // Call upsertTrip API
+    upsertTrip.mutate(
+      {
+        payload: formData,
+        access_token: accessToken,
+      },
+      {
+        onSuccess: (response) => {
+          // Navigate to activities page using the trip ID from response or formData
+          const savedTripId = response.trip_id || formData.trip_id;
+          if (savedTripId) {
+            router.push(`/trips/${savedTripId}/activities`);
+          }
+        },
+        onError: (error) => {
+          console.error("Failed to save trip:", error);
+          // Error will be handled by the mutation hook
+        },
+      }
+    );
+  };
 
   // Conditional returns AFTER all hooks
   if (isEditTrip && isPending) {
@@ -229,259 +140,71 @@ export default function TripPage() {
   }
 
   return (
-    <main className="container mx-auto py-8 flex justify-center">
-      <Card className="w-full max-w-4xl">
-        <CardHeader>
-          <CardTitle>{isNewTrip ? "Create Trip" : "Edit Trip"}</CardTitle>
-          <CardDescription>
-            {isNewTrip
-              ? "Update your trip details"
-              : "Plan your next adventure"}
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Content */}
+      <main className="flex-1 pt-10 pb-12 px-12 max-w-full">
+        {/* <main className="flex-1 p-8 max-w-5xl"> */}
+        <div className="mx-5">
+          {/* Breadcrumb */}
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+            MY TRIPS <span className="text-red-500 mx-1">›</span> TRIP SETUP
+          </div>
 
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FieldGroup>
-              <Field>
-                <FieldLabel>Trip Name *</FieldLabel>
-                <Input
-                  placeholder="Summer Vacation 2026"
-                  {...form.register("trip_name")}
-                />
-                <FieldError errors={[form.formState.errors.trip_name]} />
-              </Field>
-
-              <Field>
-                <FieldLabel>Description *</FieldLabel>
-                <Textarea
-                  placeholder="Tell us about your trip..."
-                  {...form.register("description")}
-                />
-                <FieldError errors={[form.formState.errors.description]} />
-              </Field>
-
-              <Field>
-                <FieldLabel>Main Location *</FieldLabel>
-                <Controller
-                  name="main_location"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {POPULAR_CITIES.map((city) => (
-                          <SelectItem key={city} value={city}>
-                            {city}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                <FieldError errors={[form.formState.errors.main_location]} />
-              </Field>
-
-              <Field>
-                <FieldLabel>Trip Dates *</FieldLabel>
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={(range) => {
-                    setDateRange(range);
-                    if (range?.from) {
-                      form.setValue(
-                        "start_date",
-                        range.from.toISOString().split("T")[0]
-                      );
-                    }
-                    if (range?.to) {
-                      form.setValue(
-                        "end_date",
-                        range.to.toISOString().split("T")[0]
-                      );
-                    }
-                  }}
-                  numberOfMonths={2}
-                  className="w-full"
-                />
-                <FieldError
-                  errors={[
-                    form.formState.errors.start_date,
-                    form.formState.errors.end_date,
-                  ]}
-                />
-              </Field>
-
+          {/* Section Header */}
+          <div className="grid grid-cols-2 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Trip Setup & Collaboration
+              </h1>
+              <p className="text-gray-600">
+                Define your journey details and invite your travel crew.
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
               <Button
-                type="submit"
-                className="w-full"
+                onClick={handleNavigateToActivities}
                 disabled={upsertTrip.isPending}
+                variant={"link"}
+                size="lg"
+                className="justify-self-end place-self-end"
               >
                 {upsertTrip.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : isNewTrip ? (
-                  "Create Trip"
+                  "Saving & Continuing..."
                 ) : (
-                  "Update Trip"
+                  <>
+                    Next Step: Plan Activities
+                    <ArrowRight className="ml-2 size-5" />
+                  </>
                 )}
               </Button>
-            </FieldGroup>
-          </form>
-
-          {/* Member Invitation Section - Only show for existing trips */}
-          {isEditTrip && typeof tripId === "number" && (
-            <div className="mt-8 pt-6 border-t">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">Invite Members</h3>
-                  <p className="text-sm text-gray-500">
-                    Invite others to collaborate on this trip
-                  </p>
-                </div>
-                {showInviteForm && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowInviteForm(false);
-                      setInviteEmail("");
-                      setInviteRole("VIEWER");
-                      setMembersToInvite([]);
-                    }}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="size-5" />
-                  </button>
-                )}
-              </div>
-
-              {!showInviteForm ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowInviteForm(true)}
-                  className="w-full"
-                >
-                  <UserPlus className="mr-2 size-4" />
-                  Add Member
-                </Button>
-              ) : (
-                <div className="space-y-4">
-                  {/* List of members to invite */}
-                  {membersToInvite.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-700">
-                        Members to invite ({membersToInvite.length}):
-                      </p>
-                      <div className="space-y-2">
-                        {membersToInvite.map((member, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-md border"
-                          >
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">
-                                {member.email}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Role: {member.role}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveMember(member.email)}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                              aria-label="Remove member"
-                            >
-                              <X className="size-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Input fields for new member */}
-                  <div className="flex items-end gap-2">
-                    <Field className="flex-1">
-                      <FieldLabel>Email Address *</FieldLabel>
-                      <Input
-                        type="email"
-                        placeholder="colleague@example.com"
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddMember();
-                          }
-                        }}
-                      />
-                    </Field>
-
-                    <Field className="w-40">
-                      <FieldLabel>Role *</FieldLabel>
-                      <Select
-                        value={inviteRole}
-                        onValueChange={(value: "EDITOR" | "VIEWER") =>
-                          setInviteRole(value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="EDITOR">Editor</SelectItem>
-                          <SelectItem value="VIEWER">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </div>
-
-                  {/* Full-width Add Member button */}
-                  <Button
-                    type="button"
-                    onClick={handleAddMember}
-                    disabled={!inviteEmail}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <UserPlus className="mr-2 size-4" />
-                    Add Member
-                  </Button>
-
-                  {/* Send Invitations Button - only show if there are members */}
-                  {membersToInvite.length > 0 && (
-                    <Button
-                      type="button"
-                      onClick={handleSendInvitations}
-                      disabled={tripInvitation.isPending}
-                      className="w-full"
-                    >
-                      {tripInvitation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 size-4 animate-spin" />
-                          Sending Invitations...
-                        </>
-                      ) : (
-                        `Send ${membersToInvite.length} Invitation${
-                          membersToInvite.length !== 1 ? "s" : ""
-                        }`
-                      )}
-                    </Button>
-                  )}
-                </div>
-              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+          </div>
+        </div>
+        {/* Trip Form */}
+        <TripForm
+          ref={tripFormRef}
+          isNewTrip={isNewTrip}
+          tripId={tripId}
+          accessToken={accessToken}
+          {...(trip && trip.image_url ? { initialData: trip } : {})}
+          onSubmit={handleFormSubmit}
+          onFormChange={handleFormSubmit}
+        />
+
+        {/* Member Invitation Section - Show for trips with valid ID */}
+        {typeof tripId === "number" && tripId > 0 && (
+          <TripInvitation
+            tripId={tripId}
+            accessToken={accessToken}
+            existingMembers={trip?.members?.map((member) => ({
+              email: member.email,
+              name: member.name,
+              role: member.role as "OWNER" | "EDITOR" | "VIEWER",
+              avatar: member.image_url || "",
+            }))}
+          />
+        )}
+      </main>
+    </div>
   );
 }

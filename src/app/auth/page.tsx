@@ -45,14 +45,14 @@ export default function AuthenticationPage() {
                         </div>
                     </Card>
 
-                    <p className="text-center text-sm text-muted-foreground">
+                    {/* <p className="text-center text-sm text-muted-foreground">
                         By signing in, you agree to our Terms of Service and Privacy Policy
-                    </p>
+                    </p> */}
                     <div className='w-300px'>
 
-                        <p className='text-center text-sm text-muted-foreground'>
+                        {/* <p className='text-center text-sm text-muted-foreground'>
                             {localStorage.getItem("access_token") || ""}
-                        </p>
+                        </p> */}
                     </div>
                 </div>
             </main>

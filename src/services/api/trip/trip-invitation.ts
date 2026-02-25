@@ -1,18 +1,18 @@
+import { apiClient } from "@/lib/axios";
 import { TripInvitationRequest, TripInvitationResponse } from "@/services/schemas/trip";
 
 export const tripInvitation = async (payload: TripInvitationRequest, access_token: string): Promise<TripInvitationResponse> => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/trips/invitation`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`
-        },
-        body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to send trip invitation');
+    console.log(payload)
+    
+    try {
+        const { data } = await apiClient.post<TripInvitationResponse>('/api/v1/trip/invitation', payload, {
+            headers: {
+                "Authorization": `Bearer ${access_token}`
+            }
+        });
+        return TripInvitationResponse.parse(data)
+    } catch (error) {
+        console.log('axios err: ', error)
+        throw error;
     }
-
-    return response.json();
 }
