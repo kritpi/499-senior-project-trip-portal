@@ -1,4 +1,5 @@
 import { Avatar } from "@/components/ui/avatar";
+import { X } from "lucide-react";
 
 // interface ExpenseSchemaProps {
 //   expenseId: string;
@@ -41,7 +42,7 @@ export default function ExpenseList(props: ExpenseSchemaProps) {
   return (
     <div
       onClick={props.onClick}
-      className="relative grid grid-cols-9 items-center w-full px-5 py-4 mb-3 border border-stone-200/80 rounded-xl bg-stone-100/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
+      className="relative grid grid-cols-11 items-center w-full px-5 py-4 mb-3 border border-stone-200/80 rounded-xl bg-stone-100/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
     >
       {/* Title */}
       <div className="col-span-3 flex flex-col gap-1 min-w-0">
@@ -83,7 +84,7 @@ export default function ExpenseList(props: ExpenseSchemaProps) {
       </div>
 
       {/* My share */}
-      <div className="col-span-1 flex justify-self-end flex-col items-end">
+      <div className="col-span-2 flex justify-self-end flex-col items-end">
         <span className="text-[10px] text-stone-400 font-medium uppercase tracking-wide">
           My share
         </span>
@@ -94,6 +95,20 @@ export default function ExpenseList(props: ExpenseSchemaProps) {
             maximumFractionDigits: 2,
           })}
         </span>
+      </div>
+
+      {/* Delete button */}
+      <div className="col-span-1 flex justify-self-end">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onDelete?.();
+          }}
+          className="p-1.5 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-150"
+          aria-label="Delete expense"
+        >
+          <X size={16} />
+        </button>
       </div>
     </div>
   );

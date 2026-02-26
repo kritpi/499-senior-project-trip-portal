@@ -65,8 +65,8 @@ export function EditableActivityCard({
   const [note, setNote] = useState(activity.note || "");
   const [description, setDescription] = useState(activity.description || "");
 
-  const debouncedNote = useDebounce(note, 500);
-  const debouncedDescription = useDebounce(description, 500);
+  const debouncedNote = useDebounce(note, 2000);
+  const debouncedDescription = useDebounce(description, 2000);
 
   // Sync local state with props when props change (e.g. initial load or external update)
   useEffect(() => {

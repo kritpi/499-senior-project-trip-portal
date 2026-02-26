@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter, usePathname } from "next/navigation";
 
 interface ErrorCardProps {
   error: Error | unknown;
@@ -8,12 +9,34 @@ interface ErrorCardProps {
   actionLabel?: string;
 }
 
-export default function ErrorCard({ 
-  error, 
+export default function ErrorCard({
+  error,
   title = "Something went wrong",
-  onAction, 
-  actionLabel = "Try Again" 
+  onAction,
+  actionLabel = "Try Again",
 }: ErrorCardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const getStatusCode = (err: unknown): number | undefined => {
+    if (err && typeof err === "object") {
+      if ("status" in err) return Number((err as { status: unknown }).status);
+      if ("statusCode" in err)
+        return Number((err as { statusCode: unknown }).statusCode);
+    }
+    return undefined;
+  };
+
+  const statusCode = getStatusCode(error);
+  const is401 = statusCode === 401;
+
+  const handleAction = () => {
+    if (is401) {
+      router.push(`/auth?returnTo=${encodeURIComponent(pathname)}`);
+    } else {
+      onAction?.();
+    }
+  };
   // Parse error message
   const getErrorMessage = (err: unknown): string => {
     if (err instanceof Error) {
@@ -38,12 +61,10 @@ export default function ErrorCard({
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
             {title}
           </h2>
-          <p className="text-muted-foreground">
-            {errorMessage}
-          </p>
-          {onAction && (
-            <Button onClick={onAction} variant="outline">
-              {actionLabel}
+          <p className="text-muted-foreground">{errorMessage}</p>
+          {(onAction || is401) && (
+            <Button onClick={handleAction} variant="outline">
+              {is401 ? "Go to Login" : actionLabel}
             </Button>
           )}
         </div>

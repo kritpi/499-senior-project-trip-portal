@@ -7,6 +7,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
+import ErrorCard from "@/components/common/ErrorCard";
 import { useParams } from "next/navigation";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { useQuery } from "@tanstack/react-query";
@@ -70,16 +71,20 @@ export default function TripActivitiesPage() {
 
   // Get access token
   const [accessToken, setAccessToken] = useState<string>("");
+  const [tokenChecked, setTokenChecked] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      setAccessToken(token);
-    }
+    const token = localStorage.getItem("access_token") ?? "";
+    setAccessToken(token);
+    setTokenChecked(true);
   }, []);
 
   // Fetch trip details
-  const { data: tripData, isLoading: isTripLoading } = useQuery({
+  const {
+    data: tripData,
+    isLoading: isTripLoading,
+    error: tripError,
+  } = useQuery({
     queryKey: tripKeys.detail(tripId),
     queryFn: () => getTripById(tripId, accessToken),
     enabled: !!accessToken && !!tripId,
@@ -359,11 +364,39 @@ export default function TripActivitiesPage() {
     }));
   }, [activities]);
 
+  // Still waiting for localStorage read
+  if (!tokenChecked) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+
+  // No token — not logged in
+  if (!accessToken) {
+    return (
+      <ErrorCard
+        error={{
+          status: 401,
+          message: "You must be logged in to view activities.",
+        }}
+        title="Authentication Required"
+      />
+    );
+  }
+
   if (loadError) {
     return (
       <div className="flex h-screen items-center justify-center">
         Error loading maps
       </div>
+    );
+  }
+
+  if (tripError) {
+    return (
+      <ErrorCard error={tripError} title="Failed to Load Trip Activities" />
     );
   }
 

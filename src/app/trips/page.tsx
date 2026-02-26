@@ -16,6 +16,7 @@ import { Trip } from "@/services/schemas/trip";
 
 export default function TripsPage() {
   const [accessToken, setAccessToken] = useState("");
+  const [tokenChecked, setTokenChecked] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<RoleFilter[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +25,7 @@ export default function TripsPage() {
     // Access localStorage only on client side
     const token = localStorage.getItem("access_token") || "";
     setAccessToken(token);
+    setTokenChecked(true);
   }, []);
 
   const { data, isPending, error } = useTrips(accessToken);
@@ -75,6 +77,21 @@ export default function TripsPage() {
 
     return filtered;
   }, [data?.trips, selectedRoles, dateFilter, searchQuery]);
+
+  // Still waiting for localStorage read
+  if (!tokenChecked) {
+    return <ProgressLoading />;
+  }
+
+  // No token — not logged in
+  if (!accessToken) {
+    return (
+      <ErrorCard
+        error={{ status: 401, message: "You must be logged in to view trips." }}
+        title="Authentication Required"
+      />
+    );
+  }
 
   // Loading state
   if (isPending) {

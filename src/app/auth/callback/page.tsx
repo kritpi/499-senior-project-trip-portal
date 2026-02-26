@@ -28,15 +28,17 @@ export default function GoogleCallback() {
         onSuccess: () => {
           // Clean up code verifier
           localStorage.removeItem("google_code_verifier");
-          // Redirect to dashboard/home
-          router.push("/auth");
+          // Redirect back to the page the user came from, or default to /trips
+          const returnTo = localStorage.getItem("return_to") || "/trips";
+          localStorage.removeItem("return_to");
+          router.push(returnTo);
         },
         onError: (error) => {
           console.error("Google login failed:", error);
           // Optionally redirect to login page with error
           router.push("/auth?error=google_auth_failed");
         },
-      }
+      },
     );
   }, [googleLogin, router]);
 

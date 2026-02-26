@@ -5,6 +5,8 @@ import ProgressLoading from "@/components/ui/loading-animation";
 import { useGetTripExpenses } from "@/hooks/expenses/use-get-trip-expenses";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { expenseKeys } from "@/services/query-keys/expense-keys";
 import { Button } from "@/components/ui/button";
 import TotalExpenseAmount from "@/components/expense/total-amount-card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,11 +14,13 @@ import ExpenseList from "@/components/expense/expense-list";
 import UpsertExpenseDialog from "@/components/expense/upsert-expense-dialog";
 import { ExpenseSchema } from "@/services/schemas/expense";
 import z from "zod";
+import { deleteExpense } from "@/services/api/expenses/delete-expense";
 
 export default function Expenses() {
   const router = useRouter();
   const params = useParams();
   const tripId = parseInt(params.trip_id as string);
+  const queryClient = useQueryClient();
 
   const [accessToken, setAccessToken] = useState<string>("");
   const [selectedTab, setSelectedTab] = useState<string>("allExpenses");
@@ -138,7 +142,7 @@ export default function Expenses() {
 
             {/* expenses lists */}
             <div className="my-2">
-              <div className="grid grid-cols-9 w-full mb-2 px-5">
+              <div className="grid grid-cols-11 w-full mb-2 px-5">
                 <div className="col-span-3 text-gray-400 font-semibold">
                   Title
                 </div>
@@ -151,9 +155,10 @@ export default function Expenses() {
                 <div className="col-span-2 flex justify-self-start text-gray-400 font-semibold">
                   Created By
                 </div>
-                <div className="col-span-1 flex justify-self-end text-gray-400 font-semibold">
+                <div className="col-span-2 flex justify-self-end text-gray-400 font-semibold">
                   My Shared
                 </div>
+                <div className="col-span-1" />
               </div>
               {tripExpenses?.expenses
                 .filter((exp) =>
@@ -178,6 +183,16 @@ export default function Expenses() {
                         amount: p.amount,
                       }))}
                       onClick={() => handleExpenseListCardClick(exp)}
+                      onDelete={async () => {
+                        await deleteExpense(
+                          tripId,
+                          { expense_id: exp.expense_id },
+                          accessToken,
+                        );
+                        queryClient.invalidateQueries({
+                          queryKey: expenseKeys.expensesByTrip(tripId),
+                        });
+                      }}
                     />
                   );
                 })}

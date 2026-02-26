@@ -21,10 +21,11 @@ export default function TripPage() {
     params?.trip_id === "create"
       ? "create"
       : typeof params?.trip_id === "string"
-      ? parseInt(params.trip_id, 10)
-      : NaN;
+        ? parseInt(params.trip_id, 10)
+        : NaN;
 
   const [accessToken, setAccessToken] = useState("");
+  const [tokenChecked, setTokenChecked] = useState(false);
   const [isNewTrip, setIsNewTrip] = useState(false);
   const [formData, setFormData] = useState<UpsertTripRequest | null>(null);
 
@@ -35,6 +36,7 @@ export default function TripPage() {
   useEffect(() => {
     const token = localStorage.getItem("access_token") ?? "";
     setAccessToken(token);
+    setTokenChecked(true);
   }, []);
 
   const hasAccessToken = accessToken !== "";
@@ -119,11 +121,30 @@ export default function TripPage() {
           console.error("Failed to save trip:", error);
           // Error will be handled by the mutation hook
         },
-      }
+      },
     );
   };
 
   // Conditional returns AFTER all hooks
+
+  // Still waiting for localStorage read
+  if (!tokenChecked) {
+    return <ProgressLoading />;
+  }
+
+  // No token — not logged in
+  if (!accessToken) {
+    return (
+      <ErrorCard
+        error={{
+          status: 401,
+          message: "You must be logged in to view this trip.",
+        }}
+        title="Authentication Required"
+      />
+    );
+  }
+
   if (isEditTrip && isPending) {
     return <ProgressLoading />;
   }
