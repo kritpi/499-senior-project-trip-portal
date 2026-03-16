@@ -409,17 +409,17 @@ export default function TripActivitiesPage() {
   }
 
   return (
-    <div className="h-screen w-[calc(100vw-16rem)] overflow-hidden bg-gray-50">
+    <div className="h-screen w-[calc(100vw-16rem)] overflow-hidden bg-background">
       <ResizablePanelGroup
         orientation="horizontal"
         className="h-full w-full rounded-lg border"
       >
         {/* Left Panel: Activities List */}
         <ResizablePanel defaultSize={40} minSize={30}>
-          <div className="h-full flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="h-full flex flex-col bg-background">
             {/* Day Tabs Navigation */}
             {tripDates.length > 0 && (
-              <div className="border-b bg-white dark:bg-slate-950">
+              <div className="border-b bg-card">
                 <div
                   className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden"
                   style={{
@@ -490,7 +490,7 @@ export default function TripActivitiesPage() {
                 >
                   <div className="space-y-4 pb-4">
                     {activities.length === 0 && (
-                      <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+                      <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-2xl">
                         <MapPin className="mx-auto h-8 w-8 mb-2 opacity-50" />
                         <p>No activities scheduled</p>
                         <p className="text-xs">
@@ -514,7 +514,7 @@ export default function TripActivitiesPage() {
                     {/* Add Activity Button */}
                     <Button
                       variant="outline"
-                      className="w-full border-2 border-dashed hover:border-primary hover:bg-primary/5 transition-colors h-auto py-6"
+                      className="w-full border-2 border-dashed hover:border-primary hover:bg-primary/5 transition-colors h-auto py-6 rounded-2xl"
                       onClick={handleAddEmptyActivity}
                       disabled={!isEditable}
                     >

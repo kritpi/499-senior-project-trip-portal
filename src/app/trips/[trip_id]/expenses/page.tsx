@@ -13,6 +13,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExpenseList from "@/components/expense/expense-list";
 import UpsertExpenseDialog from "@/components/expense/upsert-expense-dialog";
 import { ExpenseSchema } from "@/services/schemas/expense";
+import { getTripById } from "@/services/api/trip/get-trip-by-id";
+import { useQuery } from "@tanstack/react-query";
+import { tripKeys } from "@/services/query-keys/trip-keys";
 import z from "zod";
 import { deleteExpense } from "@/services/api/expenses/delete-expense";
 
@@ -34,6 +37,15 @@ export default function Expenses() {
       setAccessToken(token);
     }
   }, []);
+
+  // Fetch trip details to get user role
+  const { data: tripData } = useQuery({
+    queryKey: tripKeys.detail(tripId),
+    queryFn: () => getTripById(tripId, accessToken),
+    enabled: !!accessToken && !!tripId,
+  });
+
+  const isViewer = tripData?.role === "VIEWER";
 
   // Handle clicking on expense card
   function handleExpenseListCardClick(
@@ -65,7 +77,7 @@ export default function Expenses() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Expense detail dialog */}
       <UpsertExpenseDialog
         expense={selectedExpense}
@@ -73,6 +85,7 @@ export default function Expenses() {
         setIsDialogOpen={setIsDialogOpen}
         tripId={tripId}
         accessToken={accessToken}
+        isViewer={isViewer}
       />
 
       {/* Main */}
@@ -81,25 +94,27 @@ export default function Expenses() {
           {/* heading */}
           <div className="grid grid-cols-2 mb-2">
             <div className="ml-2">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Expenses Management
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Track your spending across your trip
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Button
-                variant="outline"
-                size="lg"
-                className="justify-self-end place-self-end"
-                onClick={() => {
-                  setSelectedExpense(undefined);
-                  setIsDialogOpen(true);
-                }}
-              >
-                Add New Expense
-              </Button>
+              {!isViewer && (
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="justify-self-end place-self-end"
+                  onClick={() => {
+                    setSelectedExpense(undefined);
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  Add New Expense
+                </Button>
+              )}
             </div>
           </div>
 
@@ -109,13 +124,13 @@ export default function Expenses() {
             <TotalExpenseAmount
               type="Trip Total Expense"
               amount={tripExpenses?.total_amount ?? 0}
-              variant="green"
+              variant="primary"
               avgPerDay={tripExpenses?.avg_per_day}
             />
             <TotalExpenseAmount
               type="My Total Expense"
               amount={tripExpenses?.my_total_amount ?? 0}
-              variant="red"
+              variant="destructive"
               avgPerDay={tripExpenses?.my_avg_per_day}
             />
           </div>
@@ -126,13 +141,13 @@ export default function Expenses() {
             >
               <TabsList variant="line" className="mb-2">
                 <TabsTrigger
-                  className="font-semibold text-md text-gray-500"
+                  className="font-semibold text-md text-muted-foreground"
                   value="allExpenses"
                 >
                   All Expenses
                 </TabsTrigger>
                 <TabsTrigger
-                  className="font-semibold text-md text-gray-500"
+                  className="font-semibold text-md text-muted-foreground"
                   value="myExpenses"
                 >
                   My Expenses
@@ -143,28 +158,43 @@ export default function Expenses() {
             {/* expenses lists */}
             <div className="my-2">
               <div className="grid grid-cols-11 w-full mb-2 px-5">
-                <div className="col-span-3 text-gray-400 font-semibold">
+                <div className="col-span-3 text-muted-foreground font-semibold">
                   Title
                 </div>
-                <div className="col-span-1 flex justify-self-center text-gray-400 font-semibold">
+                <div className="col-span-1 flex justify-self-center text-muted-foreground font-semibold">
                   Split Type
                 </div>
-                <div className="col-span-2 flex justify-self-center text-gray-400 font-semibold">
+                <div className="col-span-2 flex justify-self-center text-muted-foreground font-semibold">
                   Amount
                 </div>
-                <div className="col-span-2 flex justify-self-start text-gray-400 font-semibold">
+                <div className="col-span-2 flex justify-self-start text-muted-foreground font-semibold">
                   Created By
                 </div>
-                <div className="col-span-2 flex justify-self-end text-gray-400 font-semibold">
+                <div className="col-span-2 flex justify-self-end text-muted-foreground font-semibold">
                   My Shared
                 </div>
                 <div className="col-span-1" />
               </div>
-              {tripExpenses?.expenses
-                .filter((exp) =>
-                  selectedTab === "myExpenses" ? exp.my_shared > 0 : true,
-                )
-                .map((exp) => {
+              {(() => {
+                const filteredExpenses = tripExpenses?.expenses?.filter(
+                  (exp) =>
+                    selectedTab === "myExpenses" ? exp.my_shared > 0 : true,
+                );
+
+                if (!filteredExpenses || filteredExpenses.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-accent/20 rounded-lg border border-dashed mt-4">
+                      <p className="text-lg font-medium">No expenses found</p>
+                      <p className="text-sm mt-1">
+                        {selectedTab === "myExpenses"
+                          ? "You haven't participated in any expenses yet."
+                          : "There are no expenses in this trip yet."}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return filteredExpenses.map((exp) => {
                   return (
                     <ExpenseList
                       key={exp.expense_id}
@@ -195,7 +225,8 @@ export default function Expenses() {
                       }}
                     />
                   );
-                })}
+                });
+              })()}
             </div>
           </div>
         </div>

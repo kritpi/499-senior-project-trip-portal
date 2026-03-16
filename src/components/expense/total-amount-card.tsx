@@ -3,36 +3,36 @@
 interface TotalExpenseAmountProps {
   type: string;
   amount: number;
-  variant?: "green" | "red";
+  variant?: "primary" | "destructive";
   avgPerDay?: number;
 }
 
 const variantStyles = {
-  green: {
-    card: "bg-green-50/70 border-green-100",
-    label: "text-green-800/70",
-    amount: "text-green-900",
-    sub: "text-green-700/57",
+  primary: {
+    card: "border-l-4 border-l-primary",
+    label: "text-muted-foreground",
+    amount: "text-card-foreground",
+    sub: "text-muted-foreground",
   },
-  red: {
-    card: "bg-rose-50/70 border-rose-100",
-    label: "text-rose-700/70",
-    amount: "text-rose-800",
-    sub: "text-rose-600/70",
+  destructive: {
+    card: "border-l-4 border-l-destructive",
+    label: "text-muted-foreground",
+    amount: "text-card-foreground",
+    sub: "text-muted-foreground",
   },
 };
 
 export default function TotalExpenseAmount({
   type,
   amount,
-  variant = "green",
+  variant = "primary",
   avgPerDay,
 }: TotalExpenseAmountProps) {
   const styles = variantStyles[variant];
 
   return (
     <div
-      className={`flex flex-row justify-between gap-3 px-5 py-7 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 ${styles.card}`}
+      className={`flex flex-row justify-between gap-3 px-5 py-7 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all duration-200 ${styles.card}`}
     >
       <div>
         {/* Label */}

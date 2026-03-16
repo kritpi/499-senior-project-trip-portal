@@ -58,9 +58,7 @@ export default function ErrorCard({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
           <AlertCircle className="size-12 text-destructive mx-auto" />
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-            {title}
-          </h2>
+          <h2 className="text-2xl font-bold text-foreground">{title}</h2>
           <p className="text-muted-foreground">{errorMessage}</p>
           {(onAction || is401) && (
             <Button onClick={handleAction} variant="outline">

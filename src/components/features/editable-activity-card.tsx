@@ -103,14 +103,14 @@ export function EditableActivityCard({
     <div ref={setNodeRef} style={style} className="mb-3 px-1 pt-1">
       {etaText && (
         <div className="flex items-center justify-center pb-6 pt-2 text-xs text-muted-foreground">
-          <span className="bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full text-stone-500">
+          <span className="bg-muted px-3 py-1 rounded-full text-muted-foreground">
             🚗 {etaText}
           </span>
         </div>
       )}
       <Card
         className={cn(
-          "relative   bg-white  transition-all rounded-2xl overflow-hidden",
+          "relative transition-all rounded-2xl overflow-hidden",
           isDragging && "opacity-50",
         )}
       >
@@ -118,7 +118,7 @@ export function EditableActivityCard({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 h-9 w-9 text-stone-400 hover:text-red-500 hover:bg-stone-200/50 z-10 rounded-full"
+          className="absolute top-2 right-2 h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-accent z-10 rounded-full"
           onClick={() => onRemove(activity.id)}
           disabled={!isEditable}
         >
@@ -130,7 +130,7 @@ export function EditableActivityCard({
           <div
             {...attributes}
             {...listeners}
-            className="flex flex-col items-center justify-center gap-0.5 cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-500 pr-2 pl-4 flex-shrink-0"
+            className="flex flex-col items-center justify-center gap-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground pr-2 pl-4 flex-shrink-0"
           >
             <div className="flex gap-0.5">
               <div className="w-1 h-1 rounded-full bg-current" />
@@ -151,7 +151,7 @@ export function EditableActivityCard({
             {/* Time Pickers */}
             <div className="flex gap-3 mb-1 pr-6">
               <div className="flex-1 space-y-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mx-2">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mx-2">
                   Start
                 </label>
                 <Input
@@ -161,12 +161,12 @@ export function EditableActivityCard({
                   onChange={(e) =>
                     handleFieldChange("start_time", e.target.value)
                   }
-                  className="h-9 text-sm bg-stone-100 border-0 rounded-xl text-stone-700 font-medium pl-3 pr-3 focus-visible:ring-1 focus-visible:ring-stone-300"
+                  className="h-9 text-sm bg-muted border-0 rounded-xl text-foreground font-medium pl-3 pr-3"
                   disabled={!isEditable}
                 />
               </div>
               <div className="flex-1 space-y-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mx-2">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mx-2">
                   End
                 </label>
                 <Input
@@ -176,7 +176,7 @@ export function EditableActivityCard({
                   onChange={(e) =>
                     handleFieldChange("end_time", e.target.value)
                   }
-                  className="h-9 text-sm bg-stone-100 border-0 rounded-xl text-stone-700 font-medium pl-3 pr-3 focus-visible:ring-1 focus-visible:ring-stone-300"
+                  className="h-9 text-sm bg-muted border-0 rounded-xl text-foreground font-medium pl-3 pr-3"
                   disabled={!isEditable}
                 />
               </div>
@@ -186,8 +186,8 @@ export function EditableActivityCard({
             {activity.activity_location.address && (
               <div className="mb-3">
                 <div className="flex items-start gap-1.5 mt-1.5 pl-1">
-                  <MapPin className="h-3.5 w-3.5 mt-0.5 text-stone-800 flex-shrink-0" />
-                  <h3 className="text-base font-bold text-stone-800 leading-snug">
+                  <MapPin className="h-3.5 w-3.5 mt-0.5 text-foreground flex-shrink-0" />
+                  <h3 className="text-base font-bold text-foreground leading-snug">
                     {activity.activity_location.name || "Unnamed Location"}
                   </h3>
                 </div>
@@ -202,22 +202,22 @@ export function EditableActivityCard({
 
             {/* Notes */}
             <div className="mb-3 space-y-1">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mx-2">
-                Notes
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mx-2">
+                Name
               </label>
               <Textarea
                 id={`note-${activity.id}`}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Add notes..."
-                className="min-h-[40px] text-sm resize-none bg-white border border-stone-200 rounded-xl text-stone-600 placeholder:text-stone-300 focus-visible:ring-1 focus-visible:ring-stone-300"
+                placeholder="Add activity name..."
+                className="min-h-[40px] text-sm resize-none bg-card border-border rounded-xl text-foreground placeholder:text-muted-foreground"
                 disabled={!isEditable}
               />
             </div>
 
             {/* Description */}
             <div className="mb-3 space-y-1">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mx-2">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mx-2">
                 Description
               </label>
               <Textarea
@@ -225,14 +225,14 @@ export function EditableActivityCard({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add description..."
-                className="min-h-[40px] text-sm resize-none bg-white border border-stone-200 rounded-xl text-stone-600 placeholder:text-stone-300 focus-visible:ring-1 focus-visible:ring-stone-300"
+                className="min-h-[40px] text-sm resize-none bg-card border-border rounded-xl text-foreground placeholder:text-muted-foreground"
                 disabled={!isEditable}
               />
             </div>
 
             {/* Category */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 pr-2">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pr-2">
                 Category
               </label>
               <Select
@@ -242,15 +242,15 @@ export function EditableActivityCard({
                 }
                 disabled={!isEditable}
               >
-                <SelectTrigger className="h-10 w-auto inline-flex text-sm bg-stone-100 border-0 rounded-xl text-stone-600 font-medium px-4 focus:ring-1 focus:ring-stone-300 [&>svg]:text-stone-400">
+                <SelectTrigger className="h-10 w-auto inline-flex text-sm bg-muted border-0 rounded-xl text-foreground font-medium px-4 [&>svg]:text-muted-foreground">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-stone-200">
+                <SelectContent className="rounded-xl p-1">
                   {CATEGORY_OPTIONS.map((option) => (
                     <SelectItem
                       key={option.value}
                       value={option.value}
-                      className="rounded-lg text-stone-600"
+                      className="rounded-lg text-foreground"
                     >
                       {option.label}
                     </SelectItem>

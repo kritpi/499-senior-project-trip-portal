@@ -55,6 +55,7 @@ interface TripFormProps {
   };
   onSubmit?: (data: FormValues) => void;
   onFormChange?: (data: FormValues) => void;
+  isViewer?: boolean;
 }
 
 export interface TripFormRef {
@@ -70,8 +71,9 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
     initialData,
     onSubmit: externalOnSubmit,
     onFormChange,
+    isViewer,
   },
-  ref
+  ref,
 ) {
   const router = useRouter();
   const [dateRange, setDateRange] = useState<DateRange>();
@@ -272,7 +274,7 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
         onError: (error) => {
           console.error("❌ Failed to save trip:", error);
         },
-      }
+      },
     );
   };
 
@@ -287,12 +289,17 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
         className="space-y-6"
       >
         {/* Trip Details Card */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center gap-3 mb-6">
-            <FileText className="size-5 text-gray-700" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <FileText className="size-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-card-foreground">
               Trip Details
             </h2>
+            {isViewer && (
+              <Badge variant="secondary" className="ml-2">
+                View Only
+              </Badge>
+            )}
             <Badge variant="outline" className="ml-auto">
               STEP 1 OF 3
             </Badge>
@@ -304,10 +311,11 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
               <Field>
                 <FieldLabel>Trip Name</FieldLabel>
                 <div className="relative">
-                  <Plane className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <Plane className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
                     placeholder="e.g. Autumn in Tuscany"
                     className="pl-10"
+                    disabled={isViewer}
                     {...form.register("trip_name")}
                   />
                 </div>
@@ -317,10 +325,11 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
               <Field>
                 <FieldLabel>Destination</FieldLabel>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
                     placeholder="e.g. Bangkok, Thailand"
                     className="pl-10"
+                    disabled={isViewer}
                     {...form.register("main_location")}
                   />
                 </div>
@@ -332,11 +341,12 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
             <Field>
               <FieldLabel>Trip Description (Optional)</FieldLabel>
               <div className="relative">
-                <AlignLeft className="absolute left-3 top-3 size-4 text-gray-400" />
+                <AlignLeft className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Textarea
                   placeholder="What's the soul of this journey?"
                   rows={4}
                   className="pl-10"
+                  disabled={isViewer}
                   {...form.register("description")}
                 />
               </div>
@@ -350,9 +360,13 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
                 <PopoverTrigger asChild>
                   <button
                     type="button"
+                    disabled={isViewer}
                     className={cn(
-                      "w-full justify-start text-left font-normal border border-gray-200 rounded-md px-3 py-2 text-sm hover:bg-gray-50 transition-colors",
-                      !dateRange && "text-gray-400"
+                      "w-full justify-start text-left font-normal border border-input rounded-md px-3 py-2 text-sm transition-colors",
+                      !dateRange ? "text-muted-foreground" : "",
+                      !isViewer
+                        ? "hover:bg-accent cursor-pointer"
+                        : "cursor-not-allowed opacity-50",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 inline" />
@@ -379,13 +393,13 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
                       if (range?.from) {
                         form.setValue(
                           "start_date",
-                          range.from.toISOString().split("T")[0]
+                          range.from.toISOString().split("T")[0],
                         );
                       }
                       if (range?.to) {
                         form.setValue(
                           "end_date",
-                          range.to.toISOString().split("T")[0]
+                          range.to.toISOString().split("T")[0],
                         );
                       }
                     }}
@@ -405,13 +419,13 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
             {/* Row 5: Image Upload (full width) */}
             <Field>
               <FieldLabel>Thumbnail Image</FieldLabel>
-              <div className="border border-gray-200 rounded-md p-3 min-h-[280px] flex flex-col items-center justify-center">
+              <div className="border border-border rounded-md p-3 min-h-[400px] flex flex-col items-center justify-center">
                 {coverImage ? (
-                  <div className="relative w-full h-[280px]">
+                  <div className="relative w-full">
                     <img
                       src={coverImage}
                       alt="Trip cover"
-                      className="w-full h-full object-contain rounded-md"
+                      className="w-full h-auto rounded-md"
                     />
                     {isUploadingImage && (
                       <div className="absolute inset-0 bg-black/50 rounded-md flex items-center justify-center">
@@ -424,43 +438,52 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100"
-                      disabled={isUploadingImage}
+                      className={cn(
+                        "absolute top-2 right-2 p-1 bg-card rounded-full shadow-md hover:bg-muted",
+                        isViewer ? "hidden" : "",
+                      )}
+                      disabled={isUploadingImage || isViewer}
                     >
-                      <X className="size-4 text-gray-600" />
+                      <X className="size-4 text-muted-foreground" />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center cursor-pointer w-full h-full">
-                    <Upload className="size-8 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-600 mb-1">
-                      Upload Cover Image
-                    </span>
-                    <span className="text-xs text-gray-400">IMAGE PREVIEW</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </label>
+                  !isViewer && (
+                    <label className="flex flex-col items-center justify-center cursor-pointer w-full h-full">
+                      <Upload className="size-8 text-muted-foreground mb-2" />
+                      <span className="text-sm text-muted-foreground mb-1">
+                        Upload Cover Image
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        IMAGE PREVIEW
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )
                 )}
               </div>
             </Field>
           </FieldGroup>
 
           {/* Save Button */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <Button
-              type="submit"
-              variant={"outline"}
-              disabled={form.formState.isSubmitting}
-              size="lg"
-              className="px-8 w-full"
-            >
-              {form.formState.isSubmitting ? "Saving..." : "Save Trip"}
-            </Button>
-          </div>
+          {!isViewer && (
+            <div className="flex justify-end pt-4 border-t border-border">
+              <Button
+                type="submit"
+                variant={"default"}
+                disabled={form.formState.isSubmitting}
+                size="lg"
+                className="px-8 w-full"
+              >
+                {form.formState.isSubmitting ? "Saving..." : "Save Trip"}
+              </Button>
+            </div>
+          )}
         </div>
       </form>
     </div>
