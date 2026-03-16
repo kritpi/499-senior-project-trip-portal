@@ -45,7 +45,7 @@ export default function LandingNavbar() {
   }
 
   return (
-    <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-40">
+    <header className="bg-background/80 backdrop-blur-md sticky top-0 z-40">
       <div className="container mx-auto flex items-center justify-between h-16 px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
@@ -53,7 +53,7 @@ export default function LandingNavbar() {
             <Globe className="size-4 text-primary-foreground" />
           </div>
           <span className="text-base font-bold text-foreground tracking-tight">
-            Wanderplan
+            Keep in Trip
           </span>
         </Link>
 

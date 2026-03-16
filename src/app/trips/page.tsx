@@ -8,19 +8,28 @@ import {
   RoleFilter,
   DateFilter,
 } from "@/components/features/trip-filters";
-import { PackageOpen, ArrowLeft, LogOut } from "lucide-react";
+import {
+  PackageOpen,
+  Map,
+  MapPin,
+  ReceiptText,
+  Sparkles,
+  Globe,
+  LogOut,
+  ChevronDown,
+} from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import ErrorCard from "@/components/common/ErrorCard";
 import ProgressLoading from "@/components/ui/loading-animation";
-import { Trip } from "@/services/schemas/trip";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 
 interface JwtPayload {
   name?: string;
@@ -31,12 +40,32 @@ interface JwtPayload {
 function decodeJwt(token: string): JwtPayload {
   try {
     const payload = token.split(".")[1];
-    const decoded = JSON.parse(atob(payload));
-    return decoded as JwtPayload;
+    return JSON.parse(atob(payload)) as JwtPayload;
   } catch {
     return {};
   }
 }
+
+const features = [
+  {
+    icon: Map,
+    title: "Real-time Trip Planning",
+    description:
+      "Collaborative map, drag and reorder activities, everyone sees updates instantly",
+  },
+  {
+    icon: MapPin,
+    title: "Activities Management",
+    description:
+      "Organize places per day, add notes, times, and locations, clear daily itinerary",
+  },
+  {
+    icon: ReceiptText,
+    title: "Expense Management",
+    description:
+      "Log shared expenses, automatically calculate who owes who, simplify group payments",
+  },
+];
 
 export default function TripsPage() {
   const [accessToken, setAccessToken] = useState("");
@@ -44,7 +73,7 @@ export default function TripsPage() {
   const [selectedRoles, setSelectedRoles] = useState<RoleFilter[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<JwtPayload>({});
+  const [user, setUser] = useState<JwtPayload | null>(null);
 
   const router = useRouter();
 
@@ -52,25 +81,17 @@ export default function TripsPage() {
     // Access localStorage only on client side
     const token = localStorage.getItem("access_token") || "";
     setAccessToken(token);
-    setTokenChecked(true);
     if (token) {
       setUser(decodeJwt(token));
     }
+    setTokenChecked(true);
   }, []);
 
   function handleLogout() {
     localStorage.removeItem("access_token");
-    router.push("/");
+    setUser(null);
+    setAccessToken("");
   }
-
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "?";
 
   const { data, isPending, error } = useTrips(accessToken);
 
@@ -99,10 +120,8 @@ export default function TripsPage() {
         endDate.setHours(0, 0, 0, 0);
 
         if (dateFilter === "Upcoming") {
-          // Upcoming: trips that haven't ended yet (future or ongoing)
           return endDate >= today;
         } else if (dateFilter === "Past") {
-          // Past: trips that have already ended
           return endDate < today;
         }
         return true;
@@ -122,147 +141,200 @@ export default function TripsPage() {
     return filtered;
   }, [data?.trips, selectedRoles, dateFilter, searchQuery]);
 
-  // Still waiting for localStorage read
-  if (!tokenChecked) {
-    return <ProgressLoading />;
-  }
-
-  // No token — not logged in
-  if (!accessToken) {
-    return (
-      <ErrorCard
-        error={{ status: 401, message: "You must be logged in to view trips." }}
-        title="Authentication Required"
-      />
-    );
-  }
-
-  // Loading state
-  if (isPending) {
-    return <ProgressLoading />;
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <ErrorCard
-        error={error}
-        title="Failed to Load Trips"
-        onAction={() => window.location.reload()}
-        actionLabel="Try Again"
-      />
-    );
-  }
-
-  const renderHeader = (subtitle: React.ReactNode) => (
-    <div className="flex items-start justify-between mb-8">
-      <div className="flex items-start gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mt-1"
-          onClick={() => router.push("/")}
-        >
-          <ArrowLeft className="size-5" />
-        </Button>
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            All Trips
-          </h1>
-          <p className="mt-2 text-lg text-muted-foreground">{subtitle}</p>
-        </div>
-      </div>
-
-      <div className="w-64">
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sidebar-accent transition-colors border border-border shadow-sm">
-              <Avatar
-                src={user.picture}
-                alt={user.name}
-                fallback={initials}
-                size="sm"
-              />
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {user.name ?? "Profile"}
-                </p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">
-                  {user.email ?? "Settings"}
-                </p>
-              </div>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" side="bottom" align="end">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleLogout}
-            >
-              <LogOut className="size-4" />
-              Sign Out
-            </Button>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
-  );
-
-  // Empty state - show only CreateTripCard
-  if (!data?.trips || data.trips.length === 0) {
-    return (
-      <main className="container mx-auto py-8">
-        {renderHeader("Manage and view all your trips")}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <CreateTripCard />
-        </div>
-      </main>
-    );
-  }
-
-  // Success state with data
   return (
-    <main className="container mx-auto py-8">
-      {renderHeader(
-        <>
-          Manage and view all your trips ({filteredTrips.length}
-          {filteredTrips.length !== data.trips.length &&
-            ` of ${data.trips.length}`}
-          )
-        </>,
-      )}
+    <main className="relative min-h-screen flex flex-col text-foreground overflow-hidden bg-background">
+      <div className="relative z-10 flex flex-col flex-1">
+        {/* Brown blurry accent spanning navbar and hero */}
+        <div className="absolute top-0 left-1/4 -translate-y-1/4 w-[300px] h-[300px] md:w-[700px] md:h-[700px] bg-[#8B4513]/15 rounded-full blur-[100px] md:blur-[140px] pointer-events-none -z-10" />
 
-      {/* Filters */}
-      <TripFilters
-        selectedRoles={selectedRoles}
-        onRolesChange={setSelectedRoles}
-        dateFilter={dateFilter}
-        onDateFilterChange={setDateFilter}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+        <header className="sticky top-0 z-40">
+          <div className="container mx-auto max-w-7xl flex items-center justify-between h-16 px-6">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
+                <Globe className="size-4 text-primary-foreground" />
+              </div>
+              <span className="text-base font-bold text-foreground tracking-tight">
+                Keep in Trip
+              </span>
+            </Link>
 
-      {/* Trip Grid */}
-      {filteredTrips.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <PackageOpen className="size-16 text-muted-foreground/40 mb-4" />
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            No trips found
-          </h3>
-          <p className="text-muted-foreground max-w-md">
-            Try adjusting your filters or search query to find what you're
-            looking for.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <CreateTripCard />
-          {filteredTrips.map((trip) => (
-            <TripCard key={trip.trip_id} trip={trip} />
-          ))}
-        </div>
-      )}
+            {/* Right side — auth-aware */}
+            <div className="flex items-center gap-3">
+              {user ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-accent transition-colors">
+                      <Avatar
+                        src={user.picture}
+                        alt={user.name ?? "User"}
+                        size="sm"
+                      />
+                      <span className="text-sm font-medium text-foreground max-w-[120px] truncate hidden sm:block">
+                        {user.name ?? user.email}
+                      </span>
+                      <ChevronDown className="size-3.5 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-56 p-3"
+                    align="end"
+                    side="bottom"
+                  >
+                    <div className="flex items-center gap-3 pb-3 mb-3 border-b border-border">
+                      <Avatar
+                        src={user.picture}
+                        alt={user.name ?? "User"}
+                        size="sm"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {user.name ?? "User"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="size-4" />
+                      Sign out
+                    </Button>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/auth">Sign in</Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Feature Hero Section */}
+        <section className="relative px-6 pt-12 pb-4 md:pt-10 md:pb-8 max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-20 flex-shrink-0">
+          {/* Left side */}
+          <div className="relative z-10 flex-1 space-y-6">
+            {/* <div className="inline-flex items-center gap-2 bg-secondary/80 text-secondary-foreground text-xs font-semibold px-3 py-1.5 rounded-full border border-border backdrop-blur-sm shadow-sm">
+              <Sparkles className="size-3 text-primary" />
+              Your trip dashboard
+            </div> */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15]">
+              Plan trips{" "}
+              <span className="text-primary relative inline-block">
+                together
+                <span className="absolute bottom-1 left-0 w-full h-[4px] bg-primary/30 rounded-full" />
+              </span>
+              <br />
+              without the chaos.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
+              Keep in Trip helps groups plan trips on a shared live map, manage
+              activities, and split expenses effortlessly.
+            </p>
+          </div>
+
+          {/* Right side - Feature Cards */}
+          <div className="flex-1 w-full max-w-lg flex flex-col gap-4">
+            {features.map((feat) => (
+              <div
+                key={feat.title}
+                className="flex gap-4 p-5 rounded-2xl bg-card/60 border border-border backdrop-blur-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="size-10 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <feat.icon className="size-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-card-foreground mb-1">
+                    {feat.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {feat.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Trip Listing Section */}
+        <section className="px-6 py-12 flex-1 w-full">
+          <div className="max-w-7xl mx-auto w-full space-y-6">
+            <div className="mb-2">
+              <h2 className="text-3xl font-bold text-foreground tracking-tight">
+                Your Trips
+              </h2>
+            </div>
+
+            {!tokenChecked ? (
+              <ProgressLoading />
+            ) : !accessToken ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-card/50 rounded-2xl border border-border shadow-sm">
+                <PackageOpen className="size-16 text-muted-foreground/40 mb-4" />
+                <h3 className="text-2xl font-semibold text-foreground mb-2">
+                  Sign in to view your trips
+                </h3>
+                <p className="text-muted-foreground max-w-md mb-8">
+                  Create a new trip or access your existing itineraries by
+                  signing in.
+                </p>
+                <Button size="lg" className="px-8 shadow-md" asChild>
+                  <Link href="/auth">Sign In</Link>
+                </Button>
+              </div>
+            ) : isPending ? (
+              <ProgressLoading />
+            ) : error ? (
+              <ErrorCard
+                error={error}
+                title="Failed to Load Trips"
+                onAction={() => window.location.reload()}
+                actionLabel="Try Again"
+              />
+            ) : (
+              <div className="space-y-6">
+                <TripFilters
+                  selectedRoles={selectedRoles}
+                  onRolesChange={setSelectedRoles}
+                  dateFilter={dateFilter}
+                  onDateFilterChange={setDateFilter}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                />
+
+                {/* Horizontal Scroll Area */}
+                <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 pt-2 w-full">
+                  <div className="snap-start shrink-0 w-[300px] sm:w-[320px]">
+                    <CreateTripCard />
+                  </div>
+                  {filteredTrips.map((trip) => (
+                    <div
+                      key={trip.trip_id}
+                      className="snap-start shrink-0 w-[300px] sm:w-[320px]"
+                    >
+                      <TripCard trip={trip} />
+                    </div>
+                  ))}
+
+                  {/* Empty State when filtering returns nothing */}
+                  {filteredTrips.length === 0 && data.trips.length > 0 && (
+                    <div className="flex flex-col items-center justify-center w-full py-10 text-center">
+                      <p className="text-muted-foreground">
+                        No trips match your filters.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

@@ -59,7 +59,7 @@ export default function AuthenticationPage() {
               <Globe className="size-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold text-primary-foreground tracking-tight">
-              Wanderplan
+              Keep in Trip
             </span>
           </div>
 
@@ -96,7 +96,7 @@ export default function AuthenticationPage() {
 
           {/* Bottom tagline */}
           <p className="relative text-primary-foreground/40 text-xs">
-            © {new Date().getFullYear()} Wanderplan · Built for explorers
+            © {new Date().getFullYear()} Keep in Trip · Built for explorers
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function AuthenticationPage() {
                 <Globe className="size-4 text-primary-foreground" />
               </div>
               <span className="text-lg font-bold text-foreground">
-                Wanderplan
+                Keep in Trip
               </span>
             </div>
 
