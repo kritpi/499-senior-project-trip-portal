@@ -84,7 +84,7 @@ export function ActivityMap({
   return (
     <div className="relative w-full h-full">
       {/* Search Bar Overlay */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4">
+      <div className="absolute top-4 left-4 z-10 w-80">
         {/* Note: Using Autocomplete (legacy). Google recommends PlaceAutocompleteElement but 
             Autocomplete will continue to receive bug fixes and is not scheduled for discontinuation.
             Migration to PlaceAutocompleteElement can be done later if needed. */}
@@ -109,11 +109,11 @@ export function ActivityMap({
           }}
         >
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search for places..."
-              className="pl-10 bg-white/95 backdrop-blur-sm shadow-lg border-slate-200 focus:ring-2 focus:ring-primary"
+              className="pl-11 h-12 bg-card/95 backdrop-blur-sm shadow-lg border-border focus-visible:ring-1 focus-visible:ring-primary rounded-2xl text-base"
             />
           </div>
         </Autocomplete>

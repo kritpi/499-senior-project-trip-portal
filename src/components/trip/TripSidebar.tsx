@@ -90,14 +90,14 @@ export default function TripSidebar() {
     : "?";
 
   return (
-    <aside className="w-64 bg-gray-50 border-r border-gray-200 h-screen fixed top-0 left-0 p-6 flex flex-col overflow-y-auto">
+    <aside className="w-64 bg-sidebar border-r border-sidebar-border h-screen fixed top-0 left-0 p-6 flex flex-col overflow-y-auto">
       {/* Logo at top */}
       <div className="mb-8">
         <Link href="/" className="flex items-center gap-2">
-          <div className="size-8 rounded-md bg-red-500 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">W</span>
+          <div className="size-8 rounded-md bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-lg">W</span>
           </div>
-          <span className="text-lg font-semibold text-gray-900">
+          <span className="text-lg font-semibold text-sidebar-foreground">
             Wanderplan
           </span>
         </Link>
@@ -106,7 +106,7 @@ export default function TripSidebar() {
       {/* PLANNING Section */}
       <div className="flex-1">
         <div>
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider mb-3">
             Planning
           </h3>
           <nav className="space-y-1">
@@ -121,8 +121,8 @@ export default function TripSidebar() {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-700 hover:bg-white hover:text-gray-900",
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   )}
                 >
                   <Icon className="size-5" />
@@ -135,10 +135,10 @@ export default function TripSidebar() {
       </div>
 
       {/* User Profile at bottom */}
-      <div className="border-t border-gray-200 pt-4 mt-4">
+      <div className="border-t border-sidebar-border pt-4 mt-4">
         <Popover>
           <PopoverTrigger asChild>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white transition-colors">
+            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sidebar-accent transition-colors">
               <Avatar
                 src={user.picture}
                 alt={user.name}
@@ -146,10 +146,10 @@ export default function TripSidebar() {
                 size="sm"
               />
               <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
                   {user.name ?? "Profile"}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-sidebar-foreground/60 truncate">
                   {user.email ?? "Settings"}
                 </p>
               </div>
@@ -158,7 +158,7 @@ export default function TripSidebar() {
           <PopoverContent className="w-48 p-2" side="top" align="start">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={handleLogout}
             >
               <LogOut className="size-4" />
