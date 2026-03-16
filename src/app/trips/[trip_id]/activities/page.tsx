@@ -113,6 +113,8 @@ export default function TripActivitiesPage() {
       tripDate: selectedDate,
       enabled: !!selectedDate && !!accessToken,
     });
+  const isViewer = tripData?.role === "VIEWER";
+  const canEdit = !!isEditable && !isViewer;
 
   // Map state
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -161,6 +163,7 @@ export default function TripActivitiesPage() {
   // Map Click Handler
   const onMapClick = useCallback(
     (e: google.maps.MapMouseEvent) => {
+      if (!canEdit) return;
       const placeId = (e as any).placeId;
 
       if (placeId) {
@@ -257,11 +260,12 @@ export default function TripActivitiesPage() {
         },
       );
     },
-    [map],
+    [map, canEdit],
   );
 
   // Add selected place to activity list
   const handleAddPlace = () => {
+    if (!canEdit) return;
     if (!selectedPlace || !selectedPlace.geometry?.location) return;
 
     const newActivity: Activity = {
@@ -287,6 +291,7 @@ export default function TripActivitiesPage() {
 
   // Add empty activity without location
   const handleAddEmptyActivity = () => {
+    if (!canEdit) return;
     const newActivity: Activity = {
       id: "", // Empty string for new activities
       start_time: "09:00",
@@ -309,6 +314,7 @@ export default function TripActivitiesPage() {
 
   // Remove Handler
   const handleRemoveActivity = (id: string) => {
+    if (!canEdit) return;
     const updatedActivities = activities
       .filter((act) => act.id !== id)
       .map((act, index) => ({ ...act, rank: index + 1 }));
@@ -317,6 +323,7 @@ export default function TripActivitiesPage() {
 
   // Change Handler
   const handleActivityChange = (updatedActivity: Activity) => {
+    if (!canEdit) return;
     const updatedActivities = activities.map((act) =>
       act.id === updatedActivity.id ? updatedActivity : act,
     );
@@ -325,6 +332,7 @@ export default function TripActivitiesPage() {
 
   // Drag End Handler
   const handleDragEnd = (event: DragEndEvent) => {
+    if (!canEdit) return;
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -506,8 +514,7 @@ export default function TripActivitiesPage() {
                         onRemove={handleRemoveActivity}
                         onChange={handleActivityChange}
                         etaText={index > 0 ? etas[index - 1] : undefined}
-                        // isEditable={isEditable}
-                        isEditable={true}
+                        isEditable={canEdit}
                       />
                     ))}
 
@@ -516,7 +523,7 @@ export default function TripActivitiesPage() {
                       variant="outline"
                       className="w-full border-2 border-dashed hover:border-primary hover:bg-primary/5 transition-colors h-auto py-6 rounded-2xl"
                       onClick={handleAddEmptyActivity}
-                      disabled={!isEditable}
+                      disabled={!canEdit}
                     >
                       <Plus className="h-5 w-5 mr-2" />
                       ADD ACTIVITY

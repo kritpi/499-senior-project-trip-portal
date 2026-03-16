@@ -296,7 +296,7 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
               Trip Details
             </h2>
             {isViewer && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="outline" className="ml-2 py-1">
                 View Only
               </Badge>
             )}

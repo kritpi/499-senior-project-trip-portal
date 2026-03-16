@@ -209,7 +209,9 @@ export default function TripInvitation({
                 </span>
                 <Badge
                   variant={getRoleBadgeVariant(member.role)}
-                  className="text-[10px] uppercase leading-none h-auto py-0.5 px-1.5 w-fit"
+                  className={`text-[10px] uppercase leading-none h-auto py-1 px-1.5 w-fit ${
+                    member.role === "VIEWER" ? "bg-card text-foreground" : ""
+                  }`}
                 >
                   {member.role}
                 </Badge>
