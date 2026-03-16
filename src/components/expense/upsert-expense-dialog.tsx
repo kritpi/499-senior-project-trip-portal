@@ -40,6 +40,14 @@ type UpsertExpenseDialogProps = {
   isViewer?: boolean;
 };
 
+const EMPTY_FORM_VALUES: UpsertExpenseFormValues = {
+  title: "",
+  amount: 0,
+  image_url: "",
+  split_type: "ALL_EQUAL",
+  participant: [],
+};
+
 export default function UpsertExpenseDialog({
   expense,
   isDialogOpen,
@@ -70,17 +78,13 @@ export default function UpsertExpenseDialog({
     formState: { errors },
   } = useForm<UpsertExpenseFormValues>({
     resolver: zodResolver(UpsertExpenseSchema),
-    defaultValues: {
-      title: "",
-      amount: 0,
-      image_url: "",
-      split_type: "ALL_EQUAL",
-      participant: [],
-    },
+    defaultValues: EMPTY_FORM_VALUES,
   });
 
   const watchedSplitType = watch("split_type");
   const watchedParticipants = watch("participant");
+  const showSelectedEqualWarning =
+    watchedSplitType === "SELECTED_EQUAL" && watchedParticipants.length === 0;
 
   // Pre-fill form when expense changes
   useEffect(() => {
@@ -100,17 +104,20 @@ export default function UpsertExpenseDialog({
       setImagePreview(expense.image_url);
     } else {
       // Reset to blank defaults for "Add New Expense"
-      reset({
-        title: "",
-        amount: 0,
-        image_url: "",
-        split_type: "ALL_EQUAL",
-        participant: [],
-      });
+      reset(EMPTY_FORM_VALUES);
       setImagePreview("");
     }
     setActiveTab("step1");
   }, [expense, reset]);
+
+  // Ensure form clears when opening "Add New Expense" repeatedly
+  useEffect(() => {
+    if (isDialogOpen && !expense) {
+      reset(EMPTY_FORM_VALUES);
+      setImagePreview("");
+      setActiveTab("step1");
+    }
+  }, [isDialogOpen, expense, reset]);
 
   // Auto-select all members when split type is ALL_EQUAL
   useEffect(() => {
@@ -157,6 +164,9 @@ export default function UpsertExpenseDialog({
     name: string;
     image_url: string;
   }) => {
+    if (watchedSplitType === "ALL_EQUAL") {
+      return;
+    }
     const current = watchedParticipants;
     if (isParticipantSelected(member.member_id)) {
       setValue(
@@ -281,7 +291,7 @@ export default function UpsertExpenseDialog({
                         <>
                           <ImageIcon className="size-10 text-muted-foreground mb-2" />
                           <span className="text-sm text-muted-foreground">
-                            Click or drag to upload receipt
+                            Click to upload receipt
                           </span>
                           <span className="text-xs text-muted-foreground/70 mt-1">
                             PNG, JPG, WEBP accepted
@@ -364,7 +374,11 @@ export default function UpsertExpenseDialog({
                                 ? "border-primary/60 bg-primary/5"
                                 : "border-border hover:bg-muted/40"
                             }`}
-                            onClick={() => !isViewer && toggleMember(member)}
+                            onClick={() =>
+                              !isViewer &&
+                              watchedSplitType !== "ALL_EQUAL" &&
+                              toggleMember(member)
+                            }
                           >
                             {/* Avatar */}
                             {member.image_url ? (
@@ -435,6 +449,11 @@ export default function UpsertExpenseDialog({
                         );
                       })}
                     </div>
+                  )}
+                  {showSelectedEqualWarning && (
+                    <p className="text-destructive text-xs">
+                      Please select at least one member.
+                    </p>
                   )}
                   {errors.participant && (
                     <p className="text-destructive text-xs">
