@@ -30,7 +30,7 @@ export function TripCard({ trip }: TripCardProps) {
 
   return (
     <Link href={`/trips/${trip.trip_id}`}>
-      <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group rounded-2xl border border-border/50 shadow-sm pt-2 bg-card">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group rounded-2xl border-0 shadow-md pt-2">
         {/* Image Section with Overlaid Badge */}
         <div className="relative h-44 w-full  px-2 bg-card">
           <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted">
@@ -51,7 +51,9 @@ export function TripCard({ trip }: TripCardProps) {
             <div className="absolute top-3 left-3">
               <Badge
                 variant={roleVariants[trip.role]}
-                className="font-medium px-3 py-1 text-xs uppercase shadow-lg"
+                className={`font-medium px-3 py-1 text-xs uppercase shadow-lg ${
+                  trip.role === "VIEWER" ? "bg-card text-foreground" : ""
+                }`}
               >
                 {trip.role}
               </Badge>
