@@ -45,7 +45,15 @@ export const UpsertExpenseSchema = z.object({
     image_url: z.string().optional(),
     split_type: z.enum(["CUSTOM", "ALL_EQUAL", "SELECTED_EQUAL"]),
     participant: z.array(UpsertExpenseParticipantSchema),
-})
+}).superRefine((data, ctx) => {
+    if (data.split_type === "SELECTED_EQUAL" && data.participant.length === 0) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["participant"],
+            message: "Please select at least one member.",
+        });
+    }
+});
 
 export type GetTripExpenseRequest = z.infer<typeof GetTripExpensesReqSchema>;
 export type GetTripExpenseResponse = z.infer<typeof GetTripExpensesResSchema>;
