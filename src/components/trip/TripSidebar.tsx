@@ -93,11 +93,11 @@ export default function TripSidebar() {
     <aside className="w-64 bg-sidebar border-r border-sidebar-border h-screen fixed top-0 left-0 p-6 flex flex-col overflow-y-auto">
       {/* Logo at top */}
       <div className="mb-8">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="size-8 rounded-md bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">W</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
+            <Map className="size-4 text-primary-foreground" />
           </div>
-          <span className="text-lg font-semibold text-sidebar-foreground">
+          <span className="text-base font-bold text-sidebar-foreground tracking-tight">
             Keep in Trip
           </span>
         </Link>

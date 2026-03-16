@@ -14,7 +14,6 @@ import {
   MapPin,
   ReceiptText,
   Sparkles,
-  Globe,
   LogOut,
   ChevronDown,
 } from "lucide-react";
@@ -152,7 +151,7 @@ export default function TripsPage() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5">
               <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
-                <Globe className="size-4 text-primary-foreground" />
+                <Map className="size-4 text-primary-foreground" />
               </div>
               <span className="text-base font-bold text-foreground tracking-tight">
                 Keep in Trip
