@@ -5,7 +5,7 @@ import Link from "next/link";
 export function CreateTripCard() {
   return (
     <Link href="/trips/create">
-      <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group rounded-2xl border-2 border-dashed border-border shadow-md pt-2 h-full">
+      <Card className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group rounded-2xl border-2 border-dashed border-border shadow-sm pt-2 h-full bg-card/50 hover:bg-card">
         <div className="relative h-44 w-full px-2">
           <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted/50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">

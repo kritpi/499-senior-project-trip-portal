@@ -339,7 +339,7 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
 
             {/* Row 2: Description (full width) */}
             <Field>
-              <FieldLabel>Trip Description (Optional)</FieldLabel>
+              <FieldLabel>Trip Description</FieldLabel>
               <div className="relative">
                 <AlignLeft className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Textarea
@@ -467,6 +467,7 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
                   )
                 )}
               </div>
+              <FieldError errors={[form.formState.errors.image_url]} />
             </Field>
           </FieldGroup>
 

@@ -98,7 +98,7 @@ export default function TripSidebar() {
             <span className="text-primary-foreground font-bold text-lg">W</span>
           </div>
           <span className="text-lg font-semibold text-sidebar-foreground">
-            Wanderplan
+            Keep in Trip
           </span>
         </Link>
       </div>

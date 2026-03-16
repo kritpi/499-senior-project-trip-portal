@@ -30,7 +30,7 @@ export function TripCard({ trip }: TripCardProps) {
 
   return (
     <Link href={`/trips/${trip.trip_id}`}>
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group rounded-2xl border-0 shadow-md pt-2">
+      <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group rounded-2xl border border-border/50 shadow-sm pt-2 bg-card">
         {/* Image Section with Overlaid Badge */}
         <div className="relative h-44 w-full  px-2 bg-card">
           <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted">
