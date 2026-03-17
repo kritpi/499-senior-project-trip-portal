@@ -114,7 +114,7 @@ export default function TripActivitiesPage() {
       enabled: !!selectedDate && !!accessToken,
     });
   const isViewer = tripData?.role === "VIEWER";
-  const canEdit = !!isEditable && !isViewer;
+  const canEdit = !isViewer;
 
   // Map state
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -513,7 +513,13 @@ export default function TripActivitiesPage() {
                         index={index}
                         onRemove={handleRemoveActivity}
                         onChange={handleActivityChange}
-                        etaText={index > 0 ? etas[index - 1] : undefined}
+                        etaText={
+                          index > 0 &&
+                          activity.activity_location.address &&
+                          activities[index - 1].activity_location.address
+                            ? etas[index - 1]
+                            : undefined
+                        }
                         isEditable={canEdit}
                       />
                     ))}
