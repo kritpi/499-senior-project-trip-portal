@@ -99,14 +99,17 @@ export default function TripPage() {
       return;
     }
 
+    // Get the latest form data directly from the form ref to avoid race conditions
+    const currentFormData = tripFormRef.current?.getFormData();
+
     // Check if formData exists and has all required fields
     if (
-      !formData ||
-      !formData.trip_name ||
-      !formData.start_date ||
-      !formData.end_date ||
-      !formData.main_location ||
-      !formData.image_url
+      !currentFormData ||
+      !currentFormData.trip_name ||
+      !currentFormData.start_date ||
+      !currentFormData.end_date ||
+      !currentFormData.main_location ||
+      !currentFormData.image_url
     ) {
       return;
     }
@@ -114,13 +117,13 @@ export default function TripPage() {
     // Call upsertTrip API
     upsertTrip.mutate(
       {
-        payload: formData,
+        payload: currentFormData,
         access_token: accessToken,
       },
       {
         onSuccess: (response) => {
-          // Navigate to activities page using the trip ID from response or formData
-          const savedTripId = response.trip_id || formData.trip_id;
+          // Navigate to activities page using the trip ID from response or currentFormData
+          const savedTripId = response.trip_id || currentFormData.trip_id;
           if (savedTripId) {
             router.push(`/trips/${savedTripId}/activities`);
           }

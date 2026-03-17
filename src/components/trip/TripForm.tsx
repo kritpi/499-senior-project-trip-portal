@@ -393,13 +393,23 @@ const TripForm = forwardRef<TripFormRef, TripFormProps>(function TripForm(
                       if (range?.from) {
                         form.setValue(
                           "start_date",
-                          range.from.toISOString().split("T")[0],
+                          format(range.from, "yyyy-MM-dd"),
+                          {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          },
                         );
                       }
                       if (range?.to) {
                         form.setValue(
                           "end_date",
-                          range.to.toISOString().split("T")[0],
+                          format(range.to, "yyyy-MM-dd"),
+                          {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          },
                         );
                       }
                     }}
