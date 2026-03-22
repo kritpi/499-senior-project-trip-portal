@@ -9,18 +9,15 @@ import {
   DateFilter,
 } from "@/components/features/trip-filters";
 import {
-  PackageOpen,
   Map,
   MapPin,
   ReceiptText,
-  Sparkles,
   LogOut,
   ChevronDown,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import ErrorCard from "@/components/common/ErrorCard";
-import ProgressLoading from "@/components/ui/loading-animation";
-import { useRouter } from "next/navigation";
+
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
@@ -68,13 +65,10 @@ const features = [
 
 export default function TripsPage() {
   const [accessToken, setAccessToken] = useState("");
-  const [tokenChecked, setTokenChecked] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<RoleFilter[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<JwtPayload | null>(null);
-
-  const router = useRouter();
 
   useEffect(() => {
     // Access localStorage only on client side
@@ -83,7 +77,6 @@ export default function TripsPage() {
     if (token) {
       setUser(decodeJwt(token));
     }
-    setTokenChecked(true);
   }, []);
 
   function handleLogout() {
@@ -92,7 +85,7 @@ export default function TripsPage() {
     setAccessToken("");
   }
 
-  const { data, isPending, error } = useTrips(accessToken);
+  const { data, error } = useTrips(accessToken);
 
   // Filter trips based on selected filters
   const filteredTrips = useMemo(() => {
@@ -270,33 +263,8 @@ export default function TripsPage() {
               </h2>
             </div>
 
-            {!tokenChecked ? (
-              <ProgressLoading />
-            ) : !accessToken ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-card/50 rounded-2xl border border-border shadow-sm">
-                <PackageOpen className="size-16 text-muted-foreground/40 mb-4" />
-                <h3 className="text-2xl font-semibold text-foreground mb-2">
-                  Sign in to view your trips
-                </h3>
-                <p className="text-muted-foreground max-w-md mb-8">
-                  Create a new trip or access your existing itineraries by
-                  signing in.
-                </p>
-                <Button size="lg" className="px-8 shadow-md" asChild>
-                  <Link href="/auth">Sign In</Link>
-                </Button>
-              </div>
-            ) : isPending ? (
-              <ProgressLoading />
-            ) : error ? (
-              <ErrorCard
-                error={error}
-                title="Failed to Load Trips"
-                onAction={() => window.location.reload()}
-                actionLabel="Try Again"
-              />
-            ) : (
-              <div className="space-y-6">
+            <div className="space-y-6">
+              {accessToken && !error && (
                 <TripFilters
                   selectedRoles={selectedRoles}
                   onRolesChange={setSelectedRoles}
@@ -305,32 +273,32 @@ export default function TripsPage() {
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                 />
+              )}
 
-                {/* Horizontal Scroll Area */}
-                <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 pt-2 w-full">
-                  <div className="snap-start shrink-0 w-[300px] sm:w-[320px]">
-                    <CreateTripCard />
-                  </div>
-                  {filteredTrips.map((trip) => (
-                    <div
-                      key={trip.trip_id}
-                      className="snap-start shrink-0 w-[300px] sm:w-[320px]"
-                    >
-                      <TripCard trip={trip} />
-                    </div>
-                  ))}
-
-                  {/* Empty State when filtering returns nothing */}
-                  {filteredTrips.length === 0 && data.trips.length > 0 && (
-                    <div className="flex flex-col items-center justify-center w-full py-10 text-center">
-                      <p className="text-muted-foreground">
-                        No trips match your filters.
-                      </p>
-                    </div>
-                  )}
+              {/* Horizontal Scroll Area */}
+              <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 pt-2 w-full">
+                <div className="snap-start shrink-0 w-[300px] sm:w-[320px]">
+                  <CreateTripCard />
                 </div>
+                {!error && filteredTrips.map((trip) => (
+                  <div
+                    key={trip.trip_id}
+                    className="snap-start shrink-0 w-[300px] sm:w-[320px]"
+                  >
+                    <TripCard trip={trip} />
+                  </div>
+                ))}
+
+                {/* Empty State when filtering returns nothing */}
+                {!error && filteredTrips.length === 0 && (data?.trips?.length ?? 0) > 0 && (
+                  <div className="flex flex-col items-center justify-center w-full py-10 text-center">
+                    <p className="text-muted-foreground">
+                      No trips match your filters.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </section>
       </div>
