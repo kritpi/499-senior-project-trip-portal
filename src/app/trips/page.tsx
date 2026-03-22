@@ -281,8 +281,8 @@ export default function TripsPage() {
               )}
 
               {/* Horizontal Scroll Area */}
-              <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 pt-2 w-full">
-                <div className="snap-start shrink-0 w-[300px] sm:w-[320px]">
+              <div className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 pt-2 w-full pr-6 pl-2">
+                <div className="snap-end shrink-0 w-[300px] sm:w-[320px]">
                   <CreateTripCard />
                 </div>
                 {!error && filteredTrips.map((trip) => (
