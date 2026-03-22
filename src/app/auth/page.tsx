@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import GoogleLoginButton from "@/components/features/google-login-button";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
@@ -26,7 +26,7 @@ const features = [
   },
 ];
 
-export default function AuthenticationPage() {
+function AuthenticationPageContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -151,5 +151,13 @@ export default function AuthenticationPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function AuthenticationPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthenticationPageContent />
+    </Suspense>
   );
 }
