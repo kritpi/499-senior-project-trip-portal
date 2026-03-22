@@ -1,6 +1,8 @@
 "use client";
 
 import { useTrips } from "@/hooks/trip/use-trips";
+import { useQueryClient } from "@tanstack/react-query";
+import { tripKeys } from "@/services/query-keys/trip-keys";
 import { TripCard } from "@/components/features/trip-card";
 import { CreateTripCard } from "@/components/features/create-trip-card";
 import {
@@ -79,10 +81,13 @@ export default function TripsPage() {
     }
   }, []);
 
+  const queryClient = useQueryClient();
+
   function handleLogout() {
     localStorage.removeItem("access_token");
     setUser(null);
     setAccessToken("");
+    queryClient.removeQueries({ queryKey: tripKeys.all });
   }
 
   const { data, error } = useTrips(accessToken);
