@@ -113,11 +113,22 @@ export default function UpsertExpenseDialog({
   // Ensure form clears when opening "Add New Expense" repeatedly
   useEffect(() => {
     if (isDialogOpen && !expense) {
-      reset(EMPTY_FORM_VALUES);
+      reset({
+        ...EMPTY_FORM_VALUES,
+        // Pre-select all members immediately if they're already loaded
+        participant: tripMembers?.members
+          ? tripMembers.members.map((m) => ({
+              member_id: m.member_id,
+              name: m.name,
+              image_url: m.image_url,
+              amount: 0,
+            }))
+          : [],
+      });
       setImagePreview("");
       setActiveTab("step1");
     }
-  }, [isDialogOpen, expense, reset]);
+  }, [isDialogOpen, expense, reset, tripMembers]);
 
   // Auto-select all members when split type is ALL_EQUAL
   useEffect(() => {
