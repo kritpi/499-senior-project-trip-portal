@@ -31,12 +31,14 @@ interface TripInvitationProps {
   tripId: number;
   accessToken: string;
   existingMembers?: Member[];
+  isViewer?: boolean;
 }
 
 export default function TripInvitation({
   tripId,
   accessToken,
   existingMembers = [],
+  isViewer,
 }: TripInvitationProps) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"EDITOR" | "VIEWER">("EDITOR");
@@ -45,6 +47,7 @@ export default function TripInvitation({
 
   const tripInvitation = useTripInvitation();
   const deleteInvitation = useDeleteInvitation();
+  console.log(isViewer)
 
   // Email validation schema
   const emailSchema = z.string().email("Invalid email address");
@@ -72,17 +75,19 @@ export default function TripInvitation({
     return roleOrder[a.role] - roleOrder[b.role];
   });
 
-  // Get role-based badge styling
-  const getRoleBadgeClass = (role: string) => {
+  // Get role-based badge variant
+  const getRoleBadgeVariant = (
+    role: string,
+  ): "default" | "secondary" | "outline" => {
     switch (role) {
       case "OWNER":
-        return "bg-red-100 text-red-700 border-red-200";
+        return "default";
       case "EDITOR":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "secondary";
       case "VIEWER":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "outline";
       default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+        return "outline";
     }
   };
 
@@ -163,10 +168,12 @@ export default function TripInvitation({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 mt-6">
+    <div className="bg-card border border-border rounded-lg p-6 mt-6">
       <div className="flex items-center gap-3 mb-6">
-        <Users className="size-5 text-gray-700" />
-        <h2 className="text-lg font-semibold text-gray-900">Invite Members</h2>
+        <Users className="size-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-card-foreground">
+          Invite Members
+        </h2>
         <Badge variant="outline" className="ml-auto">
           STEP 2 OF 3
         </Badge>
@@ -174,14 +181,14 @@ export default function TripInvitation({
 
       {/* THE TRAVEL CREW */}
       <div className="mb-6">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           The Travel Crew
         </h3>
         <div className="flex flex-wrap gap-3">
           {sortedMembers.map((member, index) => (
             <div
               key={member.email || index}
-              className="relative inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
+              className="relative inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
             >
               <Avatar
                 src={member.avatar}
@@ -197,23 +204,24 @@ export default function TripInvitation({
                 size="sm"
               />
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 leading-none">
+                <span className="text-sm font-medium text-card-foreground leading-none">
                   {member.name || member.email}
                 </span>
                 <Badge
-                  className={`text-[10px] uppercase leading-none h-auto py-0.5 px-1.5 w-fit border ${getRoleBadgeClass(
-                    member.role,
-                  )}`}
+                  variant={getRoleBadgeVariant(member.role)}
+                  className={`text-[10px] uppercase leading-none h-auto py-1 px-1.5 w-fit ${
+                    member.role === "VIEWER" ? "bg-card text-foreground" : ""
+                  }`}
                 >
                   {member.role}
                 </Badge>
               </div>
-              {/* Show X button for all members except OWNER */}
-              {member.role !== "OWNER" && (
+              {/* Show X button for all members except OWNER and hide if isViewer */}
+              {member.role !== "OWNER" && !isViewer && (
                 <button
                   type="button"
                   onClick={() => handleRemoveMember(member)}
-                  className="ml-1 p-0.5 text-gray-400 hover:text-red-600 transition-colors"
+                  className="ml-1 p-0.5 text-muted-foreground hover:text-destructive transition-colors"
                   aria-label="Remove member"
                 >
                   <X className="size-3.5" />
@@ -224,7 +232,7 @@ export default function TripInvitation({
         </div>
       </div>
 
-      {/* Add Member Form */}
+      {/* Add Member Form - Disabled for VIEWERS */}
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
           <Field>
@@ -233,6 +241,7 @@ export default function TripInvitation({
               type="email"
               placeholder="friend@example.com"
               value={inviteEmail}
+              disabled={isViewer}
               onChange={(e) => {
                 const newEmail = e.target.value;
                 setInviteEmail(newEmail);
@@ -260,12 +269,12 @@ export default function TripInvitation({
               }}
             />
             {emailValidationError && (
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-destructive mt-1">
                 {emailValidationError}
               </p>
             )}
             {inviteError && !emailValidationError && (
-              <p className="text-sm text-red-600 mt-1">{inviteError}</p>
+              <p className="text-sm text-destructive mt-1">{inviteError}</p>
             )}
           </Field>
 
@@ -273,6 +282,7 @@ export default function TripInvitation({
             <FieldLabel>Role</FieldLabel>
             <Select
               value={inviteRole}
+              disabled={isViewer}
               onValueChange={(value: "EDITOR" | "VIEWER") =>
                 setInviteRole(value)
               }
@@ -293,7 +303,10 @@ export default function TripInvitation({
           type="button"
           onClick={handleAddMember}
           disabled={
-            !inviteEmail || tripInvitation.isPending || !!emailValidationError
+            isViewer ||
+            !inviteEmail ||
+            tripInvitation.isPending ||
+            !!emailValidationError
           }
           variant="outline"
           className="w-full"

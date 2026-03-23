@@ -1,15 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Combobox,
   ComboboxInput,
@@ -20,7 +12,7 @@ import {
 } from "@/components/ui/combobox";
 
 export type RoleFilter = "OWNER" | "EDITOR" | "VIEWER";
-export type DateFilter = "all" | "upcoming" | "past";
+export type DateFilter = "All" | "Upcoming" | "Past";
 
 interface TripFiltersProps {
   selectedRoles: RoleFilter[];
@@ -38,9 +30,9 @@ const roleOptions: { value: RoleFilter; label: string }[] = [
 ];
 
 const dateOptions: { value: DateFilter; label: string }[] = [
-  { value: "all", label: "All Trips" },
-  { value: "upcoming", label: "Upcoming" },
-  { value: "past", label: "Past" },
+  { value: "All", label: "All Trips" },
+  { value: "Upcoming", label: "Upcoming" },
+  { value: "Past", label: "Past" },
 ];
 
 export function TripFilters({
@@ -57,7 +49,9 @@ export function TripFilters({
 
     const concatString = selectedRoles
       .map((role) =>
-        roleOptions.find((opt) => opt.value === role)?.label.toLowerCase(),
+        roleOptions
+          .find((opt) => opt.value === role)
+          ?.label.replace(/\b\w/g, (c) => c.toUpperCase()),
       )
       .filter(Boolean)
       .join(", ");
@@ -70,7 +64,7 @@ export function TripFilters({
       <div className="grid grid-cols-3 gap-4">
         {/* Search Bar - Takes 2 columns (2/3 width) */}
         <div className="col-span-2 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search trips by name or location..."
@@ -108,7 +102,7 @@ export function TripFilters({
                     <ComboboxItem
                       key={option.value}
                       value={option.value}
-                      className="px-2 py-2 my-0.5 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      className="px-2 py-2 my-0.5 rounded-md cursor-pointer hover:bg-accent"
                     >
                       {option.label}
                     </ComboboxItem>
@@ -118,20 +112,38 @@ export function TripFilters({
             </Combobox>
           </div>
 
-          {/* Date Filter - Select Component */}
+          {/* Date Filter - Combobox for consistent styling */}
           <div className="flex-1">
-            <Select value={dateFilter} onValueChange={onDateFilterChange}>
-              <SelectTrigger className="h-11 w-full">
-                <SelectValue placeholder="Select date filter" />
-              </SelectTrigger>
-              <SelectContent>
-                {dateOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              onValueChange={(value: DateFilter | DateFilter[] | null) => {
+                if (typeof value === "string") {
+                  onDateFilterChange(value);
+                }
+              }}
+            >
+              <ComboboxInput
+                placeholder={
+                  dateOptions.find((o) => o.value === dateFilter)?.label ??
+                  "All Trips"
+                }
+                readOnly
+                showTrigger
+                className="h-11 cursor-pointer w-full [&_input]:!text-muted-foreground"
+              />
+              <ComboboxContent className="w-full px-1 py-1">
+                <ComboboxList className="p-1">
+                  {dateOptions.map((option) => (
+                    <ComboboxItem
+                      key={option.value}
+                      value={option.value}
+                      className="px-2 py-2 my-0.5 rounded-md cursor-pointer hover:bg-accent"
+                    >
+                      {option.label}
+                    </ComboboxItem>
+                  ))}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </div>
         </div>
       </div>

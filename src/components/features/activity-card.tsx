@@ -49,9 +49,7 @@ export function ActivityCard({
     <div ref={setNodeRef} style={style} className="mb-4">
       {etaText && (
         <div className="flex items-center justify-center py-2 text-xs text-muted-foreground">
-          <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
-            🚗 {etaText}
-          </span>
+          <span className="bg-muted px-2 py-1 rounded-full">🚗 {etaText}</span>
         </div>
       )}
       <Card
@@ -64,7 +62,7 @@ export function ActivityCard({
           <div
             {...attributes}
             {...listeners}
-            className="mt-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600"
+            className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
           >
             <GripVertical size={20} />
           </div>
@@ -73,14 +71,14 @@ export function ActivityCard({
               {location.name}
             </h4>
             <p className="text-xs text-muted-foreground">{location.address}</p>
-            <p className="text-[10px] text-slate-400 font-mono">
+            <p className="text-[10px] text-muted-foreground font-mono">
               {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
             </p>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-slate-400 hover:text-red-500"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive"
             onClick={() => onRemove(location.id)}
           >
             <X size={16} />

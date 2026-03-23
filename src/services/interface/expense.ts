@@ -9,6 +9,7 @@ interface ExpenseSchemaProps {
   splitType: string;
   participant: ParticipantProps[];
   onClick?: () => void;
+  onDelete?: () => void;
 }
 
 interface ParticipantProps {

@@ -37,6 +37,15 @@ type UpsertExpenseDialogProps = {
   setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   tripId: number;
   accessToken: string;
+  isViewer?: boolean;
+};
+
+const EMPTY_FORM_VALUES: UpsertExpenseFormValues = {
+  title: "",
+  amount: 0,
+  image_url: "",
+  split_type: "ALL_EQUAL",
+  participant: [],
 };
 
 export default function UpsertExpenseDialog({
@@ -45,6 +54,7 @@ export default function UpsertExpenseDialog({
   setIsDialogOpen,
   tripId,
   accessToken,
+  isViewer,
 }: UpsertExpenseDialogProps) {
   const [activeTab, setActiveTab] = useState<string>("step1");
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -68,17 +78,13 @@ export default function UpsertExpenseDialog({
     formState: { errors },
   } = useForm<UpsertExpenseFormValues>({
     resolver: zodResolver(UpsertExpenseSchema),
-    defaultValues: {
-      title: "",
-      amount: 0,
-      image_url: "",
-      split_type: "ALL_EQUAL",
-      participant: [],
-    },
+    defaultValues: EMPTY_FORM_VALUES,
   });
 
   const watchedSplitType = watch("split_type");
   const watchedParticipants = watch("participant");
+  const showSelectedEqualWarning =
+    watchedSplitType === "SELECTED_EQUAL" && watchedParticipants.length === 0;
 
   // Pre-fill form when expense changes
   useEffect(() => {
@@ -98,17 +104,31 @@ export default function UpsertExpenseDialog({
       setImagePreview(expense.image_url);
     } else {
       // Reset to blank defaults for "Add New Expense"
-      reset({
-        title: "",
-        amount: 0,
-        image_url: "",
-        split_type: "ALL_EQUAL",
-        participant: [],
-      });
+      reset(EMPTY_FORM_VALUES);
       setImagePreview("");
     }
     setActiveTab("step1");
   }, [expense, reset]);
+
+  // Ensure form clears when opening "Add New Expense" repeatedly
+  useEffect(() => {
+    if (isDialogOpen && !expense) {
+      reset({
+        ...EMPTY_FORM_VALUES,
+        // Pre-select all members immediately if they're already loaded
+        participant: tripMembers?.members
+          ? tripMembers.members.map((m) => ({
+              member_id: m.member_id,
+              name: m.name,
+              image_url: m.image_url,
+              amount: 0,
+            }))
+          : [],
+      });
+      setImagePreview("");
+      setActiveTab("step1");
+    }
+  }, [isDialogOpen, expense, reset, tripMembers]);
 
   // Auto-select all members when split type is ALL_EQUAL
   useEffect(() => {
@@ -155,6 +175,9 @@ export default function UpsertExpenseDialog({
     name: string;
     image_url: string;
   }) => {
+    if (watchedSplitType === "ALL_EQUAL") {
+      return;
+    }
     const current = watchedParticipants;
     if (isParticipantSelected(member.member_id)) {
       setValue(
@@ -218,6 +241,7 @@ export default function UpsertExpenseDialog({
                   <Input
                     id="title"
                     placeholder="e.g. Dinner at Sukhumvit"
+                    disabled={isViewer}
                     {...register("title")}
                   />
                   {errors.title && (
@@ -234,6 +258,7 @@ export default function UpsertExpenseDialog({
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    disabled={isViewer}
                     {...register("amount", { valueAsNumber: true })}
                   />
                   {errors.amount && (
@@ -259,42 +284,44 @@ export default function UpsertExpenseDialog({
                       type="button"
                       variant="outline"
                       size="icon-sm"
-                      className="absolute top-2 right-2"
+                      className={isViewer ? "hidden" : "absolute top-2 right-2"}
                       onClick={clearImage}
                     >
                       <X className="size-4" />
                     </Button>
                   </div>
                 ) : (
-                  <label
-                    htmlFor="receipt-upload"
-                    className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-muted-foreground/40 rounded-lg cursor-pointer hover:border-primary/60 transition-colors bg-muted/30"
-                  >
-                    {isUploading ? (
-                      <Loader2 className="size-8 text-muted-foreground animate-spin" />
-                    ) : (
-                      <>
-                        <ImageIcon className="size-10 text-muted-foreground mb-2" />
-                        <span className="text-sm text-muted-foreground">
-                          Click or drag to upload receipt
-                        </span>
-                        <span className="text-xs text-muted-foreground/70 mt-1">
-                          PNG, JPG, WEBP accepted
-                        </span>
-                      </>
-                    )}
-                    <input
-                      id="receipt-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                      disabled={isUploading}
-                    />
-                  </label>
+                  !isViewer && (
+                    <label
+                      htmlFor="receipt-upload"
+                      className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-muted-foreground/40 rounded-lg cursor-pointer hover:border-primary/60 transition-colors bg-muted/30"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="size-8 text-muted-foreground animate-spin" />
+                      ) : (
+                        <>
+                          <ImageIcon className="size-10 text-muted-foreground mb-2" />
+                          <span className="text-sm text-muted-foreground">
+                            Click to upload receipt
+                          </span>
+                          <span className="text-xs text-muted-foreground/70 mt-1">
+                            PNG, JPG, WEBP accepted
+                          </span>
+                        </>
+                      )}
+                      <input
+                        id="receipt-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                        disabled={isUploading}
+                      />
+                    </label>
+                  )
                 )}
 
-                {!imagePreview && (
+                {!imagePreview && !isViewer && (
                   <p className="text-xs text-muted-foreground text-center">
                     Image upload is optional. You can skip this step.
                   </p>
@@ -315,6 +342,7 @@ export default function UpsertExpenseDialog({
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
+                        disabled={isViewer}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select split type" />
@@ -352,12 +380,16 @@ export default function UpsertExpenseDialog({
                         return (
                           <div
                             key={member.member_id}
-                            className={`flex items-center gap-3 p-3 rounded-full border cursor-pointer transition-colors ${
+                            className={`flex items-center gap-3 p-3 rounded-lg border ${!isViewer && "cursor-pointer"} transition-colors ${
                               selected
                                 ? "border-primary/60 bg-primary/5"
                                 : "border-border hover:bg-muted/40"
                             }`}
-                            onClick={() => toggleMember(member)}
+                            onClick={() =>
+                              !isViewer &&
+                              watchedSplitType !== "ALL_EQUAL" &&
+                              toggleMember(member)
+                            }
                           >
                             {/* Avatar */}
                             {member.image_url ? (
@@ -390,6 +422,7 @@ export default function UpsertExpenseDialog({
                                 className="w-28 h-7 text-sm"
                                 value={participant?.amount ?? 0}
                                 onClick={(e) => e.stopPropagation()}
+                                disabled={isViewer}
                                 onChange={(e) =>
                                   updateParticipantAmount(
                                     member.member_id,
@@ -428,6 +461,11 @@ export default function UpsertExpenseDialog({
                       })}
                     </div>
                   )}
+                  {showSelectedEqualWarning && (
+                    <p className="text-destructive text-xs">
+                      Please select at least one member.
+                    </p>
+                  )}
                   {errors.participant && (
                     <p className="text-destructive text-xs">
                       {errors.participant.message}
@@ -453,21 +491,23 @@ export default function UpsertExpenseDialog({
             </Button>
 
             {activeTab === "step3" ? (
-              <Button
-                type="button"
-                variant="default"
-                disabled={isSaving}
-                onClick={() => handleSubmit(onSubmit)()}
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin mr-2" />
-                    Saving…
-                  </>
-                ) : (
-                  "Save"
-                )}
-              </Button>
+              !isViewer && (
+                <Button
+                  type="button"
+                  variant="default"
+                  disabled={isSaving}
+                  onClick={() => handleSubmit(onSubmit)()}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin mr-2" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+              )
             ) : (
               <Button
                 type="button"

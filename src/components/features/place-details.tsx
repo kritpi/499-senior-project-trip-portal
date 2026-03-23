@@ -40,10 +40,10 @@ export function PlaceDetails({ place, onAdd, onClose }: PlaceDetailsProps) {
       : null;
 
   return (
-    <Card className="absolute top-4 right-4 w-96 max-h-[calc(100%-2rem)] z-10 shadow-xl flex flex-col animate-in fade-in slide-in-from-right-5">
+    <Card className="absolute top-4 right-4 w-96 max-h-[calc(100%-2rem)] z-10 shadow-xl flex flex-col animate-in fade-in slide-in-from-right-5 rounded-2xl overflow-hidden border-border bg-card pt-0">
       <div className="relative">
         {mainPhotoUrl && (
-          <div className="h-48 w-full relative bg-slate-100 rounded-t-lg overflow-hidden">
+          <div className="h-48 w-full relative bg-muted rounded-t-2xl overflow-hidden">
             {/* Note: Using standard img tag because Google Maps URLs are external and dynamic */}
             <img
               src={mainPhotoUrl}
@@ -55,7 +55,7 @@ export function PlaceDetails({ place, onAdd, onClose }: PlaceDetailsProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 bg-white/80 hover:bg-white text-black rounded-full h-8 w-8"
+          className="absolute top-3 right-3 bg-black/40 hover:bg-black/60 text-white rounded-full h-8 w-8 backdrop-blur-sm z-10"
           onClick={onClose}
         >
           <X size={16} />
@@ -91,7 +91,7 @@ export function PlaceDetails({ place, onAdd, onClose }: PlaceDetailsProps) {
       </CardHeader>
 
       <div className="p-4 pt-0">
-        <Button onClick={onAdd} className="w-full mb-4">
+        <Button onClick={onAdd} className="w-full mb-4 rounded-xl">
           <Plus size={16} className="mr-2" /> Add to Trip
         </Button>
       </div>

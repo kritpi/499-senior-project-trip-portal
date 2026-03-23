@@ -9,10 +9,10 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip }: TripCardProps) {
-  const roleColors = {
-    OWNER: "bg-slate-500/90 text-white",
-    EDITOR: "bg-green-500/90 text-white",
-    VIEWER: "bg-gray-500/90 text-white",
+  const roleVariants: Record<string, "default" | "secondary" | "outline"> = {
+    OWNER: "default",
+    EDITOR: "secondary",
+    VIEWER: "outline",
   };
 
   // Format date range to "Month Day - Day, Year"
@@ -32,8 +32,8 @@ export function TripCard({ trip }: TripCardProps) {
     <Link href={`/trips/${trip.trip_id}`}>
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group rounded-2xl border-0 shadow-md pt-2">
         {/* Image Section with Overlaid Badge */}
-        <div className="relative h-44 w-full  px-2 bg-white dark:bg-slate-900">
-          <div className="relative h-full w-full overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+        <div className="relative h-44 w-full  px-2 bg-card">
+          <div className="relative h-full w-full overflow-hidden rounded-xl bg-muted">
             {trip.image_url && trip.image_url.trim() !== "" ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -42,7 +42,7 @@ export function TripCard({ trip }: TripCardProps) {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                 <Calendar className="size-12" />
               </div>
             )}
@@ -50,7 +50,10 @@ export function TripCard({ trip }: TripCardProps) {
             {/* Role Badge Overlay */}
             <div className="absolute top-3 left-3">
               <Badge
-                className={`${roleColors[trip.role]} border-none shadow-lg font-medium px-3 py-1 text-xs uppercase`}
+                variant={roleVariants[trip.role]}
+                className={`font-medium px-3 py-1 text-xs uppercase shadow-lg ${
+                  trip.role === "VIEWER" ? "bg-card text-foreground" : ""
+                }`}
               >
                 {trip.role}
               </Badge>
@@ -59,14 +62,14 @@ export function TripCard({ trip }: TripCardProps) {
         </div>
 
         {/* Content Section */}
-        <CardContent className="p-4 space-y-3 bg-white dark:bg-slate-900">
+        <CardContent className="p-4 space-y-3 bg-card">
           {/* Trip Title */}
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 line-clamp-1">
+          <h3 className="text-xl font-bold text-card-foreground line-clamp-1">
             {trip.trip_name}
           </h3>
 
           {/* Date Range */}
-          <div className="flex items-center text-slate-600 dark:text-slate-400">
+          <div className="flex items-center text-muted-foreground">
             <Calendar className="mr-2 size-4 flex-shrink-0" />
             <span className="text-sm">
               {formatDateRange(trip.start_date, trip.end_date)}
@@ -74,11 +77,11 @@ export function TripCard({ trip }: TripCardProps) {
           </div>
 
           {/* Separator */}
-          <div className="border-t border-slate-200 dark:border-slate-700" />
+          <div className="border-t border-border" />
 
           {/* Footer - View Trip Link Only */}
           <div className="flex items-center justify-end">
-            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold group-hover:gap-3 transition-all text-sm">
+            <div className="flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all text-sm">
               <span>View Trip</span>
               <ArrowRight className="size-4" />
             </div>

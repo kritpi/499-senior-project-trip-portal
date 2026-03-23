@@ -35,7 +35,7 @@ export function useActivitySocket({
   enabled = true,
 }: UseActivitySocketProps): UseActivitySocketReturn {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [isEditable, setIsEditable] = useState(false);
+  const [isEditable, setIsEditable] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<ActivitySocket | null>(null);
   const currentRoomRef = useRef<{ tripId: number; tripDate: string } | null>(null);
@@ -104,7 +104,9 @@ export function useActivitySocket({
       console.log("🎉 activity:join response received");
       console.log("✅ joined activity response:", response);
       setActivities(response.activities);
-      setIsEditable(response.is_editable);
+      if (typeof response.is_editable !== "undefined") {
+        setIsEditable(response.is_editable);
+      }
       currentRoomRef.current = { tripId, tripDate };
     });
 
@@ -154,7 +156,9 @@ export function useActivitySocket({
         data.date === tripDate
       ) {
         setActivities(data.activities);
-        setIsEditable(data.is_editable);
+        if (typeof data.is_editable !== "undefined") {
+          setIsEditable(data.is_editable);
+        }
       }
     });
 
