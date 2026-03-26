@@ -61,8 +61,8 @@ export default function TripPage() {
     enabled: isEditTrip,
   });
 
-  // Determine if the user has a VIEWER role
-  const isViewer = isEditTrip && trip?.role === "VIEWER";
+  // Only OWNER can invite or delete members; treat everyone else as a viewer for that section
+  const isViewer = isEditTrip && trip?.role !== "OWNER";
 
   useEffect(() => {
     if (trip && isEditTrip && trip.image_url) {
